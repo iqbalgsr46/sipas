@@ -158,10 +158,9 @@ CREATE INDEX IF NOT EXISTS idx_disposisi_surat ON disposisi(surat_masuk_id);
 
 -- Insert sample users
 INSERT INTO users (full_name, username, email, role, status) VALUES
-    ('Dr. Budi Santoso, M.Si', 'budi.santoso', 'budi@sipas.go.id', 'admin', 'aktif'),
-    ('Siti Aminah, S.Kom', 'siti.aminah', 'siti@sipas.go.id', 'user', 'aktif'),
-    ('Prof. Agus Pratama', 'agus.pratama', 'agus@sipas.go.id', 'pimpinan', 'aktif'),
-    ('Rina Wati, S.E', 'rina.wati', 'rina@sipas.go.id', 'user', 'nonaktif')
+    ('Wulan (Admin)', 'wulan', 'wulan@sipas.go.id', 'admin', 'aktif'),
+    ('Zidan (Staf)', 'zidan', 'zidan@sipas.go.id', 'user', 'aktif'),
+    ('Iqbal (Pimpinan)', 'iqbal', 'iqbal@sipas.go.id', 'pimpinan', 'aktif')
 ON CONFLICT (username) DO NOTHING;
 
 -- Insert sample surat masuk
