@@ -1,26 +1,259 @@
 @import "tailwindcss";
 
+/* ============================================
+ * SIPAS Design System - Tailwind CSS v4
+ * Material Design 3 Color Tokens
+ * ============================================ */
+
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --sys-primary: #00288e;
+  --sys-primary-container: #1e40af;
+  --sys-primary-fixed: #dde1ff;
+  --sys-primary-fixed-dim: #b8c4ff;
+  --sys-on-primary: #ffffff;
+  --sys-on-primary-container: #a8b8ff;
+  --sys-on-primary-fixed: #001453;
+  --sys-on-primary-fixed-variant: #173bab;
+  --sys-inverse-primary: #b8c4ff;
+  --sys-secondary: #505f76;
+  --sys-secondary-container: #d0e1fb;
+  --sys-secondary-fixed: #d3e4fe;
+  --sys-secondary-fixed-dim: #b7c8e1;
+  --sys-on-secondary: #ffffff;
+  --sys-on-secondary-container: #54647a;
+  --sys-on-secondary-fixed: #0b1c30;
+  --sys-on-secondary-fixed-variant: #38485d;
+  --sys-tertiary: #611e00;
+  --sys-tertiary-container: #872d00;
+  --sys-tertiary-fixed: #ffdbce;
+  --sys-tertiary-fixed-dim: #ffb59a;
+  --sys-on-tertiary: #ffffff;
+  --sys-on-tertiary-container: #ffa583;
+  --sys-on-tertiary-fixed: #380d00;
+  --sys-on-tertiary-fixed-variant: #802a00;
+  --sys-error: #ba1a1a;
+  --sys-error-container: #ffdad6;
+  --sys-on-error: #ffffff;
+  --sys-on-error-container: #93000a;
+  --sys-surface: #fbf8ff;
+  --sys-surface-bright: #fbf8ff;
+  --sys-surface-dim: #dad9e3;
+  --sys-surface-tint: #3755c3;
+  --sys-surface-variant: #e3e1eb;
+  --sys-surface-container: #eeedf7;
+  --sys-surface-container-low: #f4f2fc;
+  --sys-surface-container-lowest: #ffffff;
+  --sys-surface-container-high: #e8e7f1;
+  --sys-surface-container-highest: #e3e1eb;
+  --sys-background: #fbf8ff;
+  --sys-on-surface: #1a1b22;
+  --sys-on-surface-variant: #444653;
+  --sys-on-background: #1a1b22;
+  --sys-inverse-surface: #2f3037;
+  --sys-inverse-on-surface: #f1f0fa;
+  --sys-outline: #757684;
+  --sys-outline-variant: #c4c5d5;
+}
+
+.dark {
+  --sys-primary: #b8c4ff;
+  --sys-primary-container: #00288e;
+  --sys-on-primary: #001453;
+  --sys-on-primary-container: #dde1ff;
+  --sys-secondary: #b7c8e1;
+  --sys-secondary-container: #38485d;
+  --sys-on-secondary: #223045;
+  --sys-on-secondary-container: #d3e4fe;
+  --sys-tertiary: #ffb59a;
+  --sys-tertiary-container: #802a00;
+  --sys-on-tertiary: #5d1700;
+  --sys-on-tertiary-container: #ffdbce;
+  --sys-error: #ffb4ab;
+  --sys-error-container: #93000a;
+  --sys-on-error: #690005;
+  --sys-on-error-container: #ffdad6;
+  --sys-surface: #121318;
+  --sys-surface-bright: #38393f;
+  --sys-surface-dim: #121318;
+  --sys-surface-tint: #b8c4ff;
+  --sys-surface-variant: #444653;
+  --sys-surface-container: #1e1f25;
+  --sys-surface-container-low: #1a1b22;
+  --sys-surface-container-lowest: #0d0e13;
+  --sys-surface-container-high: #292a2f;
+  --sys-surface-container-highest: #34343a;
+  --sys-background: #121318;
+  --sys-on-surface: #e3e1eb;
+  --sys-on-surface-variant: #c4c5d5;
+  --sys-on-background: #e3e1eb;
+  --sys-inverse-surface: #e3e1eb;
+  --sys-inverse-on-surface: #2f3037;
+  --sys-outline: #8e8f9e;
+  --sys-outline-variant: #444653;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* ---- Typography ---- */
+  --font-inter: "Inter", sans-serif;
+  --font-public-sans: "Public Sans", sans-serif;
+  /* ---- Primary ---- */
+  /* ---- Secondary ---- */
+  /* ---- Tertiary ---- */
+  /* ---- Error ---- */
+  /* ---- Surface / Background ---- */
+  /* ---- Outline ---- */
+  /* ---- Spacing ---- */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+  --spacing-gutter: 24px;
+  --spacing-margin: 32px;
+  --spacing-max-width: 1440px;
+
+  --color-primary: var(--sys-primary);
+  --color-primary-container: var(--sys-primary-container);
+  --color-primary-fixed: var(--sys-primary-fixed);
+  --color-primary-fixed-dim: var(--sys-primary-fixed-dim);
+  --color-on-primary: var(--sys-on-primary);
+  --color-on-primary-container: var(--sys-on-primary-container);
+  --color-on-primary-fixed: var(--sys-on-primary-fixed);
+  --color-on-primary-fixed-variant: var(--sys-on-primary-fixed-variant);
+  --color-inverse-primary: var(--sys-inverse-primary);
+  --color-secondary: var(--sys-secondary);
+  --color-secondary-container: var(--sys-secondary-container);
+  --color-secondary-fixed: var(--sys-secondary-fixed);
+  --color-secondary-fixed-dim: var(--sys-secondary-fixed-dim);
+  --color-on-secondary: var(--sys-on-secondary);
+  --color-on-secondary-container: var(--sys-on-secondary-container);
+  --color-on-secondary-fixed: var(--sys-on-secondary-fixed);
+  --color-on-secondary-fixed-variant: var(--sys-on-secondary-fixed-variant);
+  --color-tertiary: var(--sys-tertiary);
+  --color-tertiary-container: var(--sys-tertiary-container);
+  --color-tertiary-fixed: var(--sys-tertiary-fixed);
+  --color-tertiary-fixed-dim: var(--sys-tertiary-fixed-dim);
+  --color-on-tertiary: var(--sys-on-tertiary);
+  --color-on-tertiary-container: var(--sys-on-tertiary-container);
+  --color-on-tertiary-fixed: var(--sys-on-tertiary-fixed);
+  --color-on-tertiary-fixed-variant: var(--sys-on-tertiary-fixed-variant);
+  --color-error: var(--sys-error);
+  --color-error-container: var(--sys-error-container);
+  --color-on-error: var(--sys-on-error);
+  --color-on-error-container: var(--sys-on-error-container);
+  --color-surface: var(--sys-surface);
+  --color-surface-bright: var(--sys-surface-bright);
+  --color-surface-dim: var(--sys-surface-dim);
+  --color-surface-tint: var(--sys-surface-tint);
+  --color-surface-variant: var(--sys-surface-variant);
+  --color-surface-container: var(--sys-surface-container);
+  --color-surface-container-low: var(--sys-surface-container-low);
+  --color-surface-container-lowest: var(--sys-surface-container-lowest);
+  --color-surface-container-high: var(--sys-surface-container-high);
+  --color-surface-container-highest: var(--sys-surface-container-highest);
+  --color-background: var(--sys-background);
+  --color-on-surface: var(--sys-on-surface);
+  --color-on-surface-variant: var(--sys-on-surface-variant);
+  --color-on-background: var(--sys-on-background);
+  --color-inverse-surface: var(--sys-inverse-surface);
+  --color-inverse-on-surface: var(--sys-inverse-on-surface);
+  --color-outline: var(--sys-outline);
+  --color-outline-variant: var(--sys-outline-variant);
+
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* ============================================
+ * Dark Mode Palette (Material Design 3)
+ * ============================================ */
+
+
+/* ============================================
+ * Base Styles
+ * ============================================ */
+
+body {
+  background: var(--color-background);
+  color: var(--color-on-background);
+  font-family: var(--font-inter);
+}
+
+/* ---- Material Symbols Icon Font ---- */
+.material-symbols-outlined {
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+}
+
+.icon-fill {
+  font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24;
+}
+
+/* ---- Scrollbar Styling ---- */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: var(--color-outline-variant);
+  border-radius: 20px;
+}
+
+/* ---- Smooth page transitions ---- */
+main {
+  animation: fadeIn 0.25s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ---- Toast slide-up animation ---- */
+.animate-slide-up {
+  animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ---- Modal entrance animation ---- */
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-modal-in {
+  animation: modalIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ---- Overlay fade ---- */
+@keyframes overlayIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.animate-overlay-in {
+  animation: overlayIn 0.15s ease both;
 }

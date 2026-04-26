@@ -1,0 +1,349 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
+import Link from "next/link";
+
+interface DashboardStats {
+  totalMasuk: number;
+  totalKeluar: number;
+  pendingApproval: number;
+  totalUsers: number;
+}
+
+interface RecentItem {
+  id: string;
+  nomor_surat: string;
+  perihal: string;
+  status: string;
+  tanggal: string;
+  tipe: "masuk" | "keluar";
+}
+
+export default function DashboardPage() {
+  const [stats, setStats] = useState<DashboardStats>({
+    totalMasuk: 0,
+    totalKeluar: 0,
+    pendingApproval: 0,
+    totalUsers: 0,
+  });
+  const [recentItems, setRecentItems] = useState<RecentItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [userName, setUserName] = useState("Pengguna");
+  const [userRole, setUserRole] = useState("user");
+
+  useEffect(() => {
+    const localUser = localStorage.getItem("sipas_user");
+    if (localUser) {
+      const parsed = JSON.parse(localUser);
+      setUserName(parsed.full_name || "Pengguna");
+      setUserRole(parsed.role || "user");
+    }
+    fetchDashboardData();
+  }, []);
+
+  async function fetchDashboardData() {
+    setLoading(true);
+    try {
+      const [masukRes, keluarRes, pendingRes, usersRes] = await Promise.all([
+        supabase.from("surat_masuk").select("*", { count: "exact", head: true }),
+        supabase.from("surat_keluar").select("*", { count: "exact", head: true }),
+        supabase.from("surat_keluar").select("*", { count: "exact", head: true }).eq("status", "menunggu_approval"),
+        supabase.from("users").select("*", { count: "exact", head: true }),
+      ]);
+
+      setStats({
+        totalMasuk: masukRes.count || 0,
+        totalKeluar: keluarRes.count || 0,
+        pendingApproval: pendingRes.count || 0,
+        totalUsers: usersRes.count || 0,
+      });
+
+      const { data: recentMasuk } = await supabase
+        .from("surat_masuk")
+        .select("id, nomor_surat, perihal, status, tanggal_diterima")
+        .order("created_at", { ascending: false })
+        .limit(3) as { data: any[] | null };
+
+      const { data: recentKeluar } = await supabase
+        .from("surat_keluar")
+        .select("id, nomor_surat, perihal, status, tanggal_surat")
+        .order("created_at", { ascending: false })
+        .limit(3) as { data: any[] | null };
+
+      const combined: RecentItem[] = [
+        ...(recentMasuk || []).map((s) => ({
+          id: s.id, nomor_surat: s.nomor_surat, perihal: s.perihal,
+          status: s.status, tanggal: s.tanggal_diterima, tipe: "masuk" as const,
+        })),
+        ...(recentKeluar || []).map((s) => ({
+          id: s.id, nomor_surat: s.nomor_surat, perihal: s.perihal,
+          status: s.status, tanggal: s.tanggal_surat, tipe: "keluar" as const,
+        })),
+      ]
+        .sort((a, b) => new Date(b.tanggal).getTime() - new Date(a.tanggal).getTime())
+        .slice(0, 5);
+
+      setRecentItems(combined);
+    } catch {
+      // data fetch failed — stats remain at 0, recentItems stays empty
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const getStatusStyle = (status: string) => {
+    const map: Record<string, string> = {
+      belum_dibaca: "bg-surface-variant text-on-surface-variant",
+      diproses: "bg-secondary-container text-on-secondary-container",
+      selesai: "bg-primary-container text-on-primary-container",
+      draft: "bg-surface-container-high text-on-surface-variant",
+      menunggu_approval: "bg-tertiary-container text-on-tertiary-container",
+      disetujui: "bg-primary-container text-on-primary-container",
+      ditolak: "bg-error-container text-on-error-container",
+    };
+    return map[status] || "bg-surface-variant text-on-surface-variant";
+  };
+
+  const getStatusLabel = (status: string) => {
+    const map: Record<string, string> = {
+      belum_dibaca: "Belum Dibaca",
+      diproses: "Diproses",
+      selesai: "Selesai",
+      draft: "Draft",
+      menunggu_approval: "Menunggu Approval",
+      disetujui: "Disetujui",
+      ditolak: "Ditolak",
+    };
+    return map[status] || status;
+  };
+
+  // Greeting berdasarkan waktu
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Selamat Pagi";
+    if (hour < 15) return "Selamat Siang";
+    if (hour < 18) return "Selamat Sore";
+    return "Selamat Malam";
+  };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 gap-3">
+        <span className="material-symbols-outlined animate-spin text-primary text-[40px]">
+          progress_activity
+        </span>
+        <p className="font-inter text-sm text-on-surface-variant">Memuat dashboard...</p>
+      </div>
+    );
+  }
+
+  const statsCards = [
+    {
+      label: "Surat Masuk",
+      value: stats.totalMasuk,
+      icon: "mark_email_unread",
+      color: "bg-primary-container",
+      iconColor: "text-on-primary-container",
+      href: "/surat-masuk",
+    },
+    {
+      label: "Surat Keluar",
+      value: stats.totalKeluar,
+      icon: "outgoing_mail",
+      color: "bg-secondary-container",
+      iconColor: "text-on-secondary-container",
+      href: "/surat-keluar",
+    },
+    {
+      label: "Menunggu Approval",
+      value: stats.pendingApproval,
+      icon: "pending_actions",
+      color: "bg-tertiary-container",
+      iconColor: "text-on-tertiary-container",
+      href: "/approval",
+      highlight: stats.pendingApproval > 0,
+    },
+    {
+      label: "Total Pengguna",
+      value: stats.totalUsers,
+      icon: "group",
+      color: "bg-surface-variant",
+      iconColor: "text-on-surface-variant",
+      href: "/users",
+    },
+  ];
+
+  return (
+    <div className="flex flex-col gap-8">
+      {/* Hero Greeting */}
+      <section className="relative bg-gradient-to-br from-primary via-primary-container to-primary rounded-2xl p-8 shadow-md overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute right-0 top-0 w-80 h-80 bg-surface-container-lowest rounded-full blur-3xl -translate-y-1/3 translate-x-1/4" />
+          <div className="absolute left-1/4 bottom-0 w-48 h-48 bg-surface-container-lowest rounded-full blur-2xl translate-y-1/2" />
+        </div>
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-3 mb-3">
+              <span className="material-symbols-outlined text-on-primary/60 text-[28px]">
+                waving_hand
+              </span>
+              <span className="px-3 py-1 rounded-full bg-on-primary/15 text-on-primary text-xs font-bold uppercase tracking-widest font-inter">
+                {userRole}
+              </span>
+            </div>
+            <h1 className="font-public-sans text-3xl md:text-4xl font-bold text-on-primary tracking-tight leading-tight">
+              {getGreeting()},{" "}
+              <span className="text-primary-fixed-dim">
+                {userName.split(" ")[0]}
+              </span>
+            </h1>
+            <p className="font-inter text-base text-on-primary/70 mt-2 max-w-xl">
+              Berikut ringkasan operasional harian Anda.
+              {stats.pendingApproval > 0 && (
+                <span className="inline-flex items-center gap-1.5 ml-2 px-2.5 py-0.5 rounded-full bg-on-primary/20 text-on-primary text-sm font-semibold">
+                  <span className="material-symbols-outlined text-[16px]">priority_high</span>
+                  {stats.pendingApproval} item menunggu tindakan
+                </span>
+              )}
+            </p>
+          </div>
+          <div className="flex gap-3">
+            <Link
+              href="/surat-masuk"
+              className="flex items-center gap-2 px-5 py-2.5 bg-surface text-primary font-inter text-sm font-semibold rounded-xl shadow-sm hover:shadow-md transition-all"
+            >
+              <span className="material-symbols-outlined text-[20px]">add</span>
+              Surat Baru
+            </Link>
+            {(userRole === "admin" || userRole === "pimpinan") && stats.pendingApproval > 0 && (
+              <Link
+                href="/approval"
+                className="flex items-center gap-2 px-5 py-2.5 bg-on-primary/15 text-on-primary font-inter text-sm font-semibold rounded-xl hover:bg-on-primary/25 transition-all"
+              >
+                <span className="material-symbols-outlined text-[20px]">task_alt</span>
+                Review
+              </Link>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Statistics Cards */}
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        {statsCards.map((card) => (
+          <Link
+            key={card.label}
+            href={card.href}
+            className={`bg-surface rounded-2xl p-5 border shadow-sm hover:shadow-md transition-all group cursor-pointer ${
+              card.highlight
+                ? "border-[#e65100]/30 ring-1 ring-[#e65100]/10"
+                : "border-outline-variant"
+            }`}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <span className="font-inter text-sm font-medium text-on-surface-variant">
+                {card.label}
+              </span>
+              <div className={`w-10 h-10 rounded-xl ${card.color} flex items-center justify-center group-hover:scale-110 transition-transform`}>
+                <span className={`material-symbols-outlined icon-fill text-[22px] ${card.iconColor}`}>
+                  {card.icon}
+                </span>
+              </div>
+            </div>
+            <div className="flex items-end justify-between">
+              <span className={`font-public-sans text-4xl font-bold tracking-tight ${
+                card.highlight ? "text-[#e65100]" : "text-on-surface"
+              }`}>
+                {card.value}
+              </span>
+              <span className="material-symbols-outlined text-on-surface-variant text-[20px] group-hover:translate-x-1 transition-transform">
+                arrow_forward
+              </span>
+            </div>
+          </Link>
+        ))}
+      </section>
+
+      {/* Recent Activity */}
+      <section className="bg-surface rounded-2xl border border-outline-variant shadow-sm overflow-hidden">
+        <div className="px-6 py-5 border-b border-outline-variant flex justify-between items-center">
+          <div>
+            <h3 className="font-public-sans text-lg font-semibold text-on-surface">
+              Aktivitas Terkini
+            </h3>
+            <p className="font-inter text-xs text-on-surface-variant mt-0.5">
+              5 dokumen terakhir yang diproses
+            </p>
+          </div>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-surface-container-low border-b border-outline-variant">
+                <th className="py-3 px-6 font-inter text-[11px] font-bold text-on-surface-variant uppercase tracking-widest">
+                  No. Surat
+                </th>
+                <th className="py-3 px-6 font-inter text-[11px] font-bold text-on-surface-variant uppercase tracking-widest">
+                  Tipe
+                </th>
+                <th className="py-3 px-6 font-inter text-[11px] font-bold text-on-surface-variant uppercase tracking-widest">
+                  Perihal
+                </th>
+                <th className="py-3 px-6 font-inter text-[11px] font-bold text-on-surface-variant uppercase tracking-widest">
+                  Tanggal
+                </th>
+                <th className="py-3 px-6 font-inter text-[11px] font-bold text-on-surface-variant uppercase tracking-widest">
+                  Status
+                </th>
+              </tr>
+            </thead>
+            <tbody className="font-inter text-sm text-on-surface divide-y divide-outline-variant">
+              {recentItems.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="py-12 px-6 text-center">
+                    <span className="material-symbols-outlined text-[40px] text-outline block mb-2">inbox</span>
+                    <p className="text-on-surface-variant">Belum ada data surat.</p>
+                  </td>
+                </tr>
+              ) : (
+                recentItems.map((item) => (
+                  <tr key={item.id} className="hover:bg-surface-container-lowest/50 transition-colors">
+                    <td className="py-3.5 px-6 font-medium text-on-surface">{item.nomor_surat}</td>
+                    <td className="py-3.5 px-6">
+                      <div className="flex items-center gap-2">
+                        <div className={`w-6 h-6 rounded-md flex items-center justify-center ${
+                          item.tipe === "masuk" ? "bg-[#e3f2fd] text-[#1565c0]" : "bg-[#f3e5f5] text-[#7b1fa2]"
+                        }`}>
+                          <span className="material-symbols-outlined text-[14px]">
+                            {item.tipe === "masuk" ? "mail" : "send"}
+                          </span>
+                        </div>
+                        <span className="text-on-surface-variant text-xs font-medium uppercase">
+                          {item.tipe === "masuk" ? "Masuk" : "Keluar"}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="py-3.5 px-6 text-on-surface-variant max-w-[250px] truncate">
+                      {item.perihal}
+                    </td>
+                    <td className="py-3.5 px-6 text-on-surface-variant text-xs">
+                      {new Date(item.tanggal).toLocaleDateString("id-ID", {
+                        day: "numeric", month: "short", year: "numeric",
+                      })}
+                    </td>
+                    <td className="py-3.5 px-6">
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-bold tracking-wider ${getStatusStyle(item.status)}`}>
+                        {getStatusLabel(item.status)}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  );
+}
