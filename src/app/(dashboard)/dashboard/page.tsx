@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import StatusBadge from "@/components/StatusBadge";
+import { SparklesText } from "@/components/ui/sparkles-text";
 
 interface DashboardStats {
   totalMasuk: number;
@@ -195,12 +196,17 @@ export default function DashboardPage() {
                 {userRole}
               </span>
             </div>
-            <h1 className="font-public-sans text-3xl md:text-4xl font-bold text-white tracking-tight leading-tight">
-              {getGreeting()},{" "}
-              <span className="text-blue-200">
-                {userName.split(" ")[0]}
-              </span>
-            </h1>
+            <div className="font-public-sans">
+              <SparklesText 
+                className="text-3xl md:text-4xl font-bold text-white tracking-tight leading-tight inline-block"
+                colors={{ first: "#fcd34d", second: "#fef08a" }}
+              >
+                {getGreeting()},{" "}
+                <span className="text-blue-200">
+                  {userName.split(" ")[0]}
+                </span>
+              </SparklesText>
+            </div>
             <div className="flex flex-col md:flex-row md:items-center md:flex-wrap gap-2 md:gap-3 mt-3 md:mt-2">
               <p className="font-inter text-sm md:text-base text-white/90 leading-relaxed md:leading-normal">
                 Berikut ringkasan operasional harian Anda.
