@@ -252,7 +252,10 @@ export default function DashboardPage() {
               </span>
             </div>
             <div className="flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-              <span className={`material-symbols-outlined icon-fill text-[64px] ${card.iconColor}`}>
+              <span 
+                className={`material-symbols-outlined icon-fill ${card.iconColor}`}
+                style={{ fontSize: "72px", lineHeight: 1 }}
+              >
                 {card.icon}
               </span>
             </div>
