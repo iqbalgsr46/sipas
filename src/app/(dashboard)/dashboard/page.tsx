@@ -187,25 +187,25 @@ export default function DashboardPage() {
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-3 mb-3">
-              <span className="material-symbols-outlined text-on-primary/60 text-[28px]">
+              <span className="material-symbols-outlined text-white/80 text-[28px]">
                 waving_hand
               </span>
-              <span className="px-3 py-1 rounded-full bg-on-primary/15 text-on-primary text-xs font-bold uppercase tracking-widest font-inter">
+              <span className="px-3 py-1 rounded-full bg-white/20 text-white text-xs font-bold uppercase tracking-widest font-inter">
                 {userRole}
               </span>
             </div>
-            <h1 className="font-public-sans text-3xl md:text-4xl font-bold text-on-primary tracking-tight leading-tight">
+            <h1 className="font-public-sans text-3xl md:text-4xl font-bold text-white tracking-tight leading-tight">
               {getGreeting()},{" "}
-              <span className="text-primary-fixed-dim">
+              <span className="text-blue-200">
                 {userName.split(" ")[0]}
               </span>
             </h1>
             <div className="flex flex-wrap items-center gap-2 mt-2">
-              <p className="font-inter text-base text-on-primary/70 whitespace-nowrap">
+              <p className="font-inter text-base text-white/80 whitespace-nowrap">
                 Berikut ringkasan operasional harian Anda.
               </p>
               {stats.pendingApproval > 0 && (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-on-primary/20 text-on-primary text-sm font-semibold whitespace-nowrap">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/20 text-white text-sm font-semibold whitespace-nowrap">
                   <span className="material-symbols-outlined text-[16px]">priority_high</span>
                   {stats.pendingApproval} item menunggu tindakan
                 </span>
@@ -215,7 +215,7 @@ export default function DashboardPage() {
           <div className="flex gap-3">
             <Link
               href="/surat-masuk"
-              className="flex items-center gap-2 px-5 py-2.5 bg-surface text-primary font-inter text-sm font-semibold rounded-xl shadow-sm hover:shadow-md transition-all"
+              className="flex items-center gap-2 px-5 py-2.5 bg-white text-blue-700 font-inter text-sm font-semibold rounded-xl shadow-sm hover:shadow-md hover:bg-gray-50 transition-all"
             >
               <span className="material-symbols-outlined text-[20px]">add</span>
               Surat Baru
@@ -223,7 +223,7 @@ export default function DashboardPage() {
             {(userRole === "admin" || userRole === "pimpinan") && stats.pendingApproval > 0 && (
               <Link
                 href="/approval"
-                className="flex items-center gap-2 px-5 py-2.5 bg-on-primary/15 text-on-primary font-inter text-sm font-semibold rounded-xl hover:bg-on-primary/25 transition-all"
+                className="flex items-center gap-2 px-5 py-2.5 bg-white/20 text-white font-inter text-sm font-semibold rounded-xl hover:bg-white/30 transition-all"
               >
                 <span className="material-symbols-outlined text-[20px]">task_alt</span>
                 Review
