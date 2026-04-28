@@ -85,9 +85,9 @@ export default function StatusBadge({ status }: StatusBadgeProps) {
 
   return (
     <span
-      className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold tracking-wider ${config.bg} ${config.text}`}
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-widest ${config.bg} ${config.text} shadow-sm border border-black/5 dark:border-white/5`}
     >
-      <span className="material-symbols-outlined text-[14px]">
+      <span className="material-symbols-outlined icon-fill text-[15px]">
         {config.icon}
       </span>
       {config.label}

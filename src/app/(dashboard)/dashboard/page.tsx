@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
+import StatusBadge from "@/components/StatusBadge";
 
 interface DashboardStats {
   totalMasuk: number;
@@ -310,14 +311,14 @@ export default function DashboardPage() {
                     <td className="py-3.5 px-6 font-medium text-on-surface">{item.nomor_surat}</td>
                     <td className="py-3.5 px-6">
                       <div className="flex items-center gap-2">
-                        <div className={`w-6 h-6 rounded-md flex items-center justify-center ${
-                          item.tipe === "masuk" ? "bg-[#e3f2fd] text-[#1565c0]" : "bg-[#f3e5f5] text-[#7b1fa2]"
+                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shadow-sm border border-black/5 dark:border-white/5 ${
+                          item.tipe === "masuk" ? "bg-primary-container text-on-primary-container" : "bg-tertiary-container text-on-tertiary-container"
                         }`}>
-                          <span className="material-symbols-outlined text-[14px]">
-                            {item.tipe === "masuk" ? "mail" : "send"}
+                          <span className="material-symbols-outlined icon-fill text-[16px]">
+                            {item.tipe === "masuk" ? "mark_email_unread" : "send"}
                           </span>
                         </div>
-                        <span className="text-on-surface-variant text-xs font-medium uppercase">
+                        <span className="text-on-surface-variant text-xs font-bold uppercase tracking-wider">
                           {item.tipe === "masuk" ? "Masuk" : "Keluar"}
                         </span>
                       </div>
@@ -331,9 +332,7 @@ export default function DashboardPage() {
                       })}
                     </td>
                     <td className="py-3.5 px-6">
-                      <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-bold tracking-wider ${getStatusStyle(item.status)}`}>
-                        {getStatusLabel(item.status)}
-                      </span>
+                      <StatusBadge status={item.status} />
                     </td>
                   </tr>
                 ))
