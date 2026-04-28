@@ -227,7 +227,7 @@ export default function TopBar() {
               if (searchResults.length > 0) setShowSearchResults(true);
             }}
             placeholder="Cari surat masuk atau keluar..."
-            className="w-full pl-10 pr-4 py-2.5 bg-surface-container-low border border-outline-variant rounded-xl font-inter text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all placeholder:text-outline"
+            className="w-full pl-10 pr-4 py-2 bg-slate-100/80 dark:bg-surface-container-high border-transparent rounded-full font-inter text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-slate-500"
           />
 
           {/* Search Results Dropdown */}
@@ -341,11 +341,11 @@ export default function TopBar() {
         <div ref={notifRef} className="relative">
           <button
             onClick={() => setShowNotifications(!showNotifications)}
-            className="p-2.5 text-on-surface-variant hover:text-primary transition-all rounded-xl hover:bg-surface-container-low relative"
+            className="p-2.5 text-on-surface-variant hover:text-primary transition-all rounded-full hover:bg-surface-container-low relative"
           >
-            <span className="material-symbols-outlined text-[22px]">notifications</span>
+            <span className="material-symbols-outlined text-[24px]">notifications</span>
             {unreadCount > 0 && (
-              <span className="absolute top-1.5 right-1.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-error text-[10px] font-bold text-on-error px-1">
+              <span className="absolute top-1 right-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-error text-[10px] font-bold text-on-error px-1 border-2 border-surface-container-lowest">
                 {unreadCount > 9 ? "9+" : unreadCount}
               </span>
             )}
@@ -442,24 +442,24 @@ export default function TopBar() {
         <div ref={profileRef} className="relative">
           <button
             onClick={() => setShowProfileMenu(!showProfileMenu)}
-            className="flex items-center gap-2.5 pl-1 pr-3 py-1.5 rounded-xl hover:bg-surface-container-low transition-all"
+            className="flex items-center gap-3 pl-2 pr-3 py-1.5 rounded-full hover:bg-surface-container-low transition-all"
           >
-            <div className="w-8 h-8 rounded-lg bg-primary text-on-primary flex items-center justify-center font-bold text-sm uppercase overflow-hidden">
+            <div className="w-9 h-9 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-sm uppercase overflow-hidden shadow-sm">
               {userProfile?.avatar_url ? (
                 <img src={userProfile.avatar_url} alt="Profile" className="w-full h-full object-cover" />
               ) : (
-                userProfile?.full_name ? userProfile.full_name.charAt(0) : "U"
+                (userProfile?.full_name || "User").replace(/\s*\(.*?\)\s*/g, '').charAt(0)
               )}
             </div>
-            <div className="hidden lg:block text-left">
-              <p className="font-inter text-sm font-semibold text-on-surface leading-tight truncate max-w-[120px]">
-                {userProfile?.full_name || "User"}
+            <div className="hidden md:flex md:flex-col md:justify-center text-left">
+              <p className="font-public-sans text-sm font-semibold text-on-surface leading-tight">
+                {(userProfile?.full_name || "User").replace(/\s*\(.*?\)\s*/g, '')}
               </p>
-              <p className="font-inter text-[11px] text-on-surface-variant capitalize">
+              <p className="font-inter text-[11px] text-on-surface-variant capitalize leading-tight">
                 {userProfile?.role || "staf"}
               </p>
             </div>
-            <span className="material-symbols-outlined text-on-surface-variant text-[18px] hidden lg:block">
+            <span className="material-symbols-outlined text-outline text-[20px] hidden md:block">
               expand_more
             </span>
           </button>
