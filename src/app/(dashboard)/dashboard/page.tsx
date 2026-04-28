@@ -144,34 +144,34 @@ export default function DashboardPage() {
     {
       label: "Surat Masuk",
       value: stats.totalMasuk,
-      icon: "visibility", // icon mata (hijau)
-      color: "bg-[#e8f5e9] dark:bg-green-900/20",
-      iconColor: "text-[#00897b] dark:text-[#4db6ac]",
+      icon: "visibility", // icon mata
+      color: "bg-[#dcfce7]", // hijau pastel cerah
+      iconColor: "text-[#10b981]", // hijau solid
       href: "/surat-masuk",
     },
     {
       label: "Surat Keluar",
       value: stats.totalKeluar,
-      icon: "work", // icon koper/tas (biru)
-      color: "bg-[#e1f5fe] dark:bg-sky-900/20",
-      iconColor: "text-[#1e88e5] dark:text-[#64b5f6]",
+      icon: "work", // icon tas/koper
+      color: "bg-[#e0f2fe]", // biru pastel cerah
+      iconColor: "text-[#3b82f6]", // biru solid
       href: "/surat-keluar",
     },
     {
       label: "Menunggu Approval",
       value: stats.pendingApproval,
-      icon: "mail", // icon amplop (ungu)
-      color: "bg-[#ede7f6] dark:bg-purple-900/20",
-      iconColor: "text-[#5e35b1] dark:text-[#9575cd]",
+      icon: "mail", // icon amplop
+      color: "bg-[#f3e8ff]", // ungu pastel cerah
+      iconColor: "text-[#8b5cf6]", // ungu solid
       href: "/approval",
       highlight: stats.pendingApproval > 0,
     },
     {
       label: "Total Pengguna",
       value: stats.totalUsers,
-      icon: "group", // icon users (orange)
-      color: "bg-[#fff3e0] dark:bg-orange-900/20",
-      iconColor: "text-[#f57c00] dark:text-[#ffb74d]",
+      icon: "group", // icon users
+      color: "bg-[#ffedd5]", // orange pastel cerah
+      iconColor: "text-[#f97316]", // orange solid
       href: "/users",
     }
   ];
@@ -239,20 +239,20 @@ export default function DashboardPage() {
           <Link
             key={card.label}
             href={card.href}
-            className={`rounded-[24px] p-6 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 group cursor-pointer flex items-center justify-between ${card.color} ${
-              card.highlight ? "ring-2 ring-[#5e35b1]/30 dark:ring-[#9575cd]/50" : ""
+            className={`rounded-2xl p-6 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 group cursor-pointer flex items-center justify-between ${card.color} ${
+              card.highlight ? "ring-2 ring-purple-400 ring-offset-2 ring-offset-surface" : ""
             }`}
           >
             <div className="flex flex-col justify-center">
-              <span className="font-public-sans text-4xl font-extrabold tracking-tight text-slate-800 dark:text-slate-100 mb-1">
+              <span className="font-public-sans text-[32px] leading-none font-extrabold tracking-tight text-slate-900 mb-2">
                 {card.value}
               </span>
-              <span className="font-inter text-sm font-medium text-slate-600 dark:text-slate-300">
+              <span className="font-inter text-sm font-medium text-slate-700">
                 {card.label}
               </span>
             </div>
             <div className="flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-              <span className={`material-symbols-outlined icon-fill text-[42px] ${card.iconColor}`}>
+              <span className={`material-symbols-outlined icon-fill text-[56px] ${card.iconColor}`}>
                 {card.icon}
               </span>
             </div>
