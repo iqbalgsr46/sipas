@@ -152,7 +152,7 @@ export default function DashboardPage() {
     {
       label: "Surat Keluar",
       value: stats.totalKeluar,
-      icon: "work", // icon tas/koper
+      icon: "shopping_bag", // icon tas
       color: "bg-[#e0f2fe]", // biru pastel cerah
       iconColor: "text-[#3b82f6]", // biru solid
       href: "/surat-keluar",
@@ -244,7 +244,7 @@ export default function DashboardPage() {
             }`}
           >
             <div className="flex flex-col justify-center">
-              <span className="font-public-sans text-[32px] leading-none font-extrabold tracking-tight text-slate-900 mb-2">
+              <span className="font-public-sans text-[40px] leading-none font-extrabold tracking-tight text-slate-900 mb-2">
                 {card.value}
               </span>
               <span className="font-inter text-sm font-medium text-slate-700">
@@ -252,7 +252,7 @@ export default function DashboardPage() {
               </span>
             </div>
             <div className="flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-              <span className={`material-symbols-outlined icon-fill text-[56px] ${card.iconColor}`}>
+              <span className={`material-symbols-outlined icon-fill text-[64px] ${card.iconColor}`}>
                 {card.icon}
               </span>
             </div>
