@@ -212,7 +212,7 @@ export default function TopBar() {
   };
 
   return (
-    <header className="sticky top-0 right-0 z-30 flex justify-between items-center pl-14 md:pl-6 pr-6 py-3 bg-surface-container-lowest/80 backdrop-blur-md border-b border-outline-variant shadow-sm">
+    <header className="sticky top-0 right-0 z-30 flex justify-between items-center pl-14 md:px-10 py-3 bg-surface-container-lowest/80 backdrop-blur-md border-b border-outline-variant shadow-sm">
       {/* Left: Search */}
       <div className="flex items-center gap-4 flex-1">
         <div ref={searchRef} className="relative w-80 hidden md:block">

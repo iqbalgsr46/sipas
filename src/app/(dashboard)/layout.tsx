@@ -26,7 +26,7 @@ export default function DashboardLayout({
         <TopBar />
 
         {/* Page Content */}
-        <main className="flex-1 p-4 md:p-6 max-w-[1440px] mx-auto w-full">
+        <main className="flex-1 p-4 md:px-10 md:py-8 max-w-[1440px] mx-auto w-full">
           {children}
         </main>
       </div>
