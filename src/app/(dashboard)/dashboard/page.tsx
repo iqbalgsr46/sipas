@@ -311,8 +311,10 @@ export default function DashboardPage() {
                     <td className="py-3.5 px-6 font-medium text-on-surface">{item.nomor_surat}</td>
                     <td className="py-3.5 px-6">
                       <div className="flex items-center gap-2">
-                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shadow-sm border border-black/5 dark:border-white/5 ${
-                          item.tipe === "masuk" ? "bg-primary-container text-on-primary-container" : "bg-tertiary-container text-on-tertiary-container"
+                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shadow-[0_1px_2px_0_rgba(0,0,0,0.03)] ring-1 ring-inset ${
+                          item.tipe === "masuk" 
+                            ? "bg-blue-50 text-blue-600 ring-blue-600/20 dark:bg-blue-500/10 dark:text-blue-400 dark:ring-blue-500/20" 
+                            : "bg-purple-50 text-purple-600 ring-purple-600/20 dark:bg-purple-500/10 dark:text-purple-400 dark:ring-purple-500/20"
                         }`}>
                           <span className="material-symbols-outlined icon-fill text-[16px]">
                             {item.tipe === "masuk" ? "mark_email_unread" : "send"}
