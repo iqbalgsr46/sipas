@@ -47,21 +47,24 @@ async function updateUsers() {
         console.log(`Auth updated for ${updateInfo.email}`);
       }
 
-      // Update Public Users Table
+      // 2. Update/Upsert Public Users Table
       const { error: publicUpdateError } = await supabase
         .from('users')
-        .update({
+        .upsert({
+          id: authUser.id, // Explicitly link to Auth ID
+          email: updateInfo.email,
           role: updateInfo.role,
           full_name: updateInfo.full_name,
           username: updateInfo.username,
           status: 'aktif'
-        })
-        .eq('id', authUser.id);
+        }, {
+          onConflict: 'email' // If a row with this email exists but different ID, update it
+        });
 
       if (publicUpdateError) {
         console.error(`Error updating Public table for ${updateInfo.email}:`, publicUpdateError.message);
       } else {
-        console.log(`Public table updated for ${updateInfo.email}`);
+        console.log(`Public table synced for ${updateInfo.email}`);
       }
     } else {
       console.log(`User ${updateInfo.email} not found in Auth. Skipping.`);

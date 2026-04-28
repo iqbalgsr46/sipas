@@ -29,7 +29,7 @@ export default function UsersPage() {
     username: "",
     email: "",
     password: "",
-    role: "user" as User["role"],
+    role: "staf" as User["role"],
     status: "aktif" as User["status"],
   });
 
@@ -84,7 +84,7 @@ export default function UsersPage() {
   // ── Helpers ───────────────────────────────────────────────────
   const EMPTY_FORM = {
     full_name: "", username: "", email: "", password: "",
-    role: "user" as User["role"], status: "aktif" as User["status"],
+    role: "staf" as User["role"], status: "aktif" as User["status"],
   };
 
   function openCreate() {
@@ -188,7 +188,7 @@ export default function UsersPage() {
   const roleBadgeCls = (role: string) => {
     const map: Record<string, string> = {
       admin: "bg-error-container text-on-error-container",
-      user: "bg-secondary-container text-on-secondary-container",
+      staf: "bg-secondary-container text-on-secondary-container",
       pimpinan: "bg-primary-container text-on-primary-container",
     };
     return map[role] ?? "bg-surface-variant text-on-surface-variant";
@@ -247,7 +247,7 @@ export default function UsersPage() {
           <label className="block font-inter text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1.5">Role</label>
           <select className={inputCls} value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value as User["role"] })}>
             <option value="admin">Admin</option>
-            <option value="user">User</option>
+            <option value="staf">Staf</option>
             <option value="pimpinan">Pimpinan</option>
           </select>
         </div>
@@ -304,7 +304,7 @@ export default function UsersPage() {
           className="px-3.5 py-2 border border-outline-variant rounded-lg font-inter text-sm bg-surface text-on-surface focus:border-primary outline-none">
           <option value="">Semua Role</option>
           <option value="admin">Admin</option>
-          <option value="user">User</option>
+          <option value="staf">Staf</option>
           <option value="pimpinan">Pimpinan</option>
         </select>
         <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}

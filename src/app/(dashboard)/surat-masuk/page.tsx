@@ -41,6 +41,7 @@ export default function SuratMasukPage() {
   const [suratList, setSuratList] = useState<SuratMasuk[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [userRole, setUserRole] = useState("staf");
 
   // modal state: null = closed, "create" | "edit" = form, "view" = detail
   const [modal, setModal] = useState<"create" | "edit" | "view" | null>(null);
@@ -69,7 +70,16 @@ export default function SuratMasukPage() {
     setLoading(false);
   }
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => { 
+    fetchData(); 
+    const localUser = localStorage.getItem("sipas_user");
+    if (localUser) {
+      try {
+        const parsed = JSON.parse(localUser);
+        setUserRole(parsed.role?.toLowerCase() || "staf");
+      } catch {}
+    }
+  }, []);
 
   /* ── open helpers ────────────────────────────── */
   function openCreate() {
@@ -358,11 +368,13 @@ export default function SuratMasukPage() {
           <h2 className="font-public-sans text-2xl font-semibold text-on-surface">Surat Masuk</h2>
           <p className="font-inter text-sm text-on-surface-variant mt-1">Kelola dan pantau seluruh surat masuk instansi.</p>
         </div>
-        <button onClick={openCreate}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-on-primary rounded-lg font-inter text-sm font-semibold hover:opacity-90 active:scale-[0.98] transition-all shadow-sm">
-          <span className="material-symbols-outlined text-[18px]">add</span>
-          Tambah Surat Masuk
-        </button>
+        {userRole !== "pimpinan" && (
+          <button onClick={openCreate}
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-on-primary rounded-lg font-inter text-sm font-semibold hover:opacity-90 active:scale-[0.98] transition-all shadow-sm">
+            <span className="material-symbols-outlined text-[18px]">add</span>
+            Tambah Surat Masuk
+          </button>
+        )}
       </div>
 
       {/* ── Table Card ── */}
@@ -404,14 +416,18 @@ export default function SuratMasukPage() {
                           className="p-1.5 rounded-md text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors">
                           <span className="material-symbols-outlined text-[19px]">visibility</span>
                         </button>
-                        <button onClick={() => openEdit(s)} title="Edit"
-                          className="p-1.5 rounded-md text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors">
-                          <span className="material-symbols-outlined text-[19px]">edit</span>
-                        </button>
-                        <button onClick={() => setConfirmDeleteId(s.id)} title="Hapus"
-                          className="p-1.5 rounded-md text-on-surface-variant hover:text-error hover:bg-error-container/40 transition-colors">
-                          <span className="material-symbols-outlined text-[19px]">delete</span>
-                        </button>
+                        {userRole !== "pimpinan" && (
+                          <button onClick={() => openEdit(s)} title="Edit"
+                            className="p-1.5 rounded-md text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors">
+                            <span className="material-symbols-outlined text-[19px]">edit</span>
+                          </button>
+                        )}
+                        {userRole === "admin" && (
+                          <button onClick={() => setConfirmDeleteId(s.id)} title="Hapus"
+                            className="p-1.5 rounded-md text-on-surface-variant hover:text-error hover:bg-error-container/40 transition-colors">
+                            <span className="material-symbols-outlined text-[19px]">delete</span>
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

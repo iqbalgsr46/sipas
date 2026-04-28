@@ -5,19 +5,17 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const allNavItems = [
-  { href: "/dashboard", icon: "dashboard", label: "Dashboard", roles: ["admin", "user", "pimpinan"] },
-  { href: "/surat-masuk", icon: "mail", label: "Surat Masuk", roles: ["admin", "user", "pimpinan"] },
-  { href: "/surat-keluar", icon: "send", label: "Surat Keluar", roles: ["admin", "user", "pimpinan"] },
+  { href: "/dashboard", icon: "dashboard", label: "Dashboard", roles: ["admin", "staf", "pimpinan"] },
+  { href: "/surat-masuk", icon: "mail", label: "Surat Masuk", roles: ["admin", "staf", "pimpinan"] },
+  { href: "/surat-keluar", icon: "send", label: "Surat Keluar", roles: ["admin", "staf", "pimpinan"] },
   { href: "/approval", icon: "rule", label: "Approval", roles: ["admin", "pimpinan"] },
-  { href: "/users", icon: "manage_accounts", label: "User Management", roles: ["admin"] },
-  { href: "/roles", icon: "admin_panel_settings", label: "Wewenang (Roles)", roles: ["admin"] },
-  { href: "/permissions", icon: "key", label: "Hak Akses", roles: ["admin"] },
-  { href: "/settings", icon: "settings", label: "Pengaturan", roles: ["admin", "user", "pimpinan"] },
+  { href: "/users", icon: "manage_accounts", label: "Manajemen User", roles: ["admin"] },
+  { href: "/settings", icon: "settings", label: "Pengaturan", roles: ["admin", "staf", "pimpinan"] },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const [userRole, setUserRole] = useState<string>("user");
+  const [userRole, setUserRole] = useState<string>("staf");
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
@@ -25,7 +23,7 @@ export default function Sidebar() {
     if (localUser) {
       try {
         const parsed = JSON.parse(localUser);
-        setUserRole(parsed.role || "user");
+        setUserRole(parsed.role || "staf");
       } catch {
         // malformed localStorage — ignore
       }
@@ -63,12 +61,14 @@ export default function Sidebar() {
     </nav>
   );
 
+  const roleLabel = userRole === "staf" ? "Staf" : userRole === "pimpinan" ? "Pimpinan" : "Admin";
+
   const RoleBadge = (
     <div className="px-6 py-4 border-t border-outline-variant">
       <div className="flex items-center gap-2">
         <span className="material-symbols-outlined text-on-surface-variant text-[18px]">shield_person</span>
         <span className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
-          {userRole}
+          {roleLabel}
         </span>
       </div>
     </div>

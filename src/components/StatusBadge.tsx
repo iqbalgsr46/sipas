@@ -41,11 +41,11 @@ const statusConfig: Record<
     icon: "edit_document",
     label: "Draft",
   },
-  menunggu_approval: {
+  diajukan: {
     bg: "bg-secondary-container",
     text: "text-on-secondary-container",
     icon: "pending_actions",
-    label: "Menunggu Approval",
+    label: "Diajukan",
   },
   disetujui: {
     bg: "bg-primary-container",
@@ -72,14 +72,6 @@ const statusConfig: Record<
     text: "text-on-surface-variant",
     icon: "block",
     label: "Non-aktif",
-  },
-
-  // Disposisi
-  pending: {
-    bg: "bg-secondary-container",
-    text: "text-on-secondary-container",
-    icon: "schedule",
-    label: "Pending",
   },
 };
 

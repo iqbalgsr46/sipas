@@ -443,7 +443,7 @@ export default function TopBar() {
                 {userProfile?.full_name || "User"}
               </p>
               <p className="font-inter text-[11px] text-on-surface-variant capitalize">
-                {userProfile?.role || "user"}
+                {userProfile?.role || "staf"}
               </p>
             </div>
             <span className="material-symbols-outlined text-on-surface-variant text-[18px] hidden lg:block">

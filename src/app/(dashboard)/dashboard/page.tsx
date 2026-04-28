@@ -30,14 +30,14 @@ export default function DashboardPage() {
   const [recentItems, setRecentItems] = useState<RecentItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState("Pengguna");
-  const [userRole, setUserRole] = useState("user");
+  const [userRole, setUserRole] = useState("staf");
 
   useEffect(() => {
     const localUser = localStorage.getItem("sipas_user");
     if (localUser) {
       const parsed = JSON.parse(localUser);
       setUserName(parsed.full_name || "Pengguna");
-      setUserRole(parsed.role || "user");
+      setUserRole(parsed.role || "staf");
     }
     fetchDashboardData();
   }, []);
@@ -48,7 +48,7 @@ export default function DashboardPage() {
       const [masukRes, keluarRes, pendingRes, usersRes] = await Promise.all([
         supabase.from("surat_masuk").select("*", { count: "exact", head: true }),
         supabase.from("surat_keluar").select("*", { count: "exact", head: true }),
-        supabase.from("surat_keluar").select("*", { count: "exact", head: true }).eq("status", "menunggu_approval"),
+        supabase.from("surat_keluar").select("*", { count: "exact", head: true }).eq("status", "diajukan"),
         supabase.from("users").select("*", { count: "exact", head: true }),
       ]);
 
@@ -99,6 +99,7 @@ export default function DashboardPage() {
       selesai: "bg-primary-container text-on-primary-container",
       draft: "bg-surface-container-high text-on-surface-variant",
       menunggu_approval: "bg-tertiary-container text-on-tertiary-container",
+      diajukan: "bg-tertiary-container text-on-tertiary-container",
       disetujui: "bg-primary-container text-on-primary-container",
       ditolak: "bg-error-container text-on-error-container",
     };
@@ -112,6 +113,7 @@ export default function DashboardPage() {
       selesai: "Selesai",
       draft: "Draft",
       menunggu_approval: "Menunggu Approval",
+      diajukan: "Diajukan",
       disetujui: "Disetujui",
       ditolak: "Ditolak",
     };
@@ -198,15 +200,17 @@ export default function DashboardPage() {
                 {userName.split(" ")[0]}
               </span>
             </h1>
-            <p className="font-inter text-base text-on-primary/70 mt-2 max-w-xl">
-              Berikut ringkasan operasional harian Anda.
+            <div className="flex flex-wrap items-center gap-2 mt-2">
+              <p className="font-inter text-base text-on-primary/70 whitespace-nowrap">
+                Berikut ringkasan operasional harian Anda.
+              </p>
               {stats.pendingApproval > 0 && (
-                <span className="inline-flex items-center gap-1.5 ml-2 px-2.5 py-0.5 rounded-full bg-on-primary/20 text-on-primary text-sm font-semibold">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-on-primary/20 text-on-primary text-sm font-semibold whitespace-nowrap">
                   <span className="material-symbols-outlined text-[16px]">priority_high</span>
                   {stats.pendingApproval} item menunggu tindakan
                 </span>
               )}
-            </p>
+            </div>
           </div>
           <div className="flex gap-3">
             <Link

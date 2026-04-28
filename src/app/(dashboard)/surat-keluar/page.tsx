@@ -34,6 +34,7 @@ export default function SuratKeluarPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [filterStatus, setFilterStatus] = useState("");
+  const [userRole, setUserRole] = useState("staf");
 
   const [modal, setModal] = useState<"create" | "edit" | "view" | null>(null);
   const [selected, setSelected] = useState<SuratKeluar | null>(null);
@@ -62,7 +63,16 @@ export default function SuratKeluarPage() {
     setLoading(false);
   }
 
-  useEffect(() => { fetchData(); }, [filterStatus]);
+  useEffect(() => { 
+    fetchData(); 
+    const localUser = localStorage.getItem("sipas_user");
+    if (localUser) {
+      try {
+        const parsed = JSON.parse(localUser);
+        setUserRole(parsed.role?.toLowerCase() || "staf");
+      } catch {}
+    }
+  }, [filterStatus]);
 
   /* ── open helpers ────────────────────────────── */
   function openCreate() {
@@ -163,10 +173,10 @@ export default function SuratKeluarPage() {
     setSendingId(id);
     const { error } = await supabase
       .from("surat_keluar")
-      .update({ status: "menunggu_approval" } as any)
+      .update({ status: "diajukan" } as any)
       .eq("id", id);
-    if (error) showToast("error", "Gagal Mengirim", error.message);
-    else { showToast("success", "Dikirim ke Approval", "Menunggu persetujuan pimpinan."); fetchData(); }
+    if (error) showToast("error", "Gagal Mengajukan", error.message);
+    else { showToast("success", "Surat Diajukan", "Menunggu persetujuan pimpinan."); fetchData(); }
     setSendingId(null);
   }
 
@@ -328,11 +338,13 @@ export default function SuratKeluarPage() {
           <h2 className="font-public-sans text-2xl font-semibold text-on-surface">Surat Keluar</h2>
           <p className="font-inter text-sm text-on-surface-variant mt-1">Kelola dan pantau status pengiriman surat instansi.</p>
         </div>
-        <button onClick={openCreate}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-on-primary rounded-lg font-inter text-sm font-semibold hover:opacity-90 active:scale-[0.98] transition-all shadow-sm">
-          <span className="material-symbols-outlined text-[18px]">add</span>
-          Tambah Surat Keluar
-        </button>
+        {userRole !== "pimpinan" && (
+          <button onClick={openCreate}
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-on-primary rounded-lg font-inter text-sm font-semibold hover:opacity-90 active:scale-[0.98] transition-all shadow-sm">
+            <span className="material-symbols-outlined text-[18px]">add</span>
+            Tambah Surat Keluar
+          </button>
+        )}
       </div>
 
       {/* ── Table Card ── */}
@@ -340,7 +352,7 @@ export default function SuratKeluarPage() {
         {/* Filter Bar */}
         <div className="px-5 py-3.5 border-b border-outline-variant bg-surface-container flex flex-wrap items-center gap-3">
           <span className="font-inter text-xs font-bold text-on-surface-variant uppercase tracking-wider">Filter:</span>
-          {["", "draft", "menunggu_approval", "disetujui", "ditolak"].map((val) => (
+          {["", "draft", "diajukan", "disetujui", "ditolak"].map((val) => (
             <button key={val}
               onClick={() => setFilterStatus(val)}
               className={`px-3 py-1 rounded-full font-inter text-xs font-semibold transition-colors ${
@@ -348,7 +360,7 @@ export default function SuratKeluarPage() {
                   ? "bg-primary text-on-primary"
                   : "bg-surface-container-high text-on-surface-variant hover:bg-surface-tint"
               }`}>
-              {val === "" ? "Semua" : val === "draft" ? "Draft" : val === "menunggu_approval" ? "Menunggu Approval" : val === "disetujui" ? "Disetujui" : "Ditolak"}
+              {val === "" ? "Semua" : val === "draft" ? "Draft" : val === "diajukan" ? "Diajukan" : val === "disetujui" ? "Disetujui" : "Ditolak"}
             </button>
           ))}
           <span className="ml-auto font-inter text-xs text-on-surface-variant">{suratList.length} surat</span>
@@ -393,18 +405,18 @@ export default function SuratKeluarPage() {
                           <span className="material-symbols-outlined text-[19px]">visibility</span>
                         </button>
                         {/* Edit (draft or rejected) */}
-                        {(s.status === "draft" || s.status === "ditolak") && (
+                        {userRole !== "pimpinan" && (s.status === "draft" || s.status === "ditolak") && (
                           <button onClick={() => openEdit(s)} title="Edit"
                             className="p-1.5 rounded-md text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors">
                             <span className="material-symbols-outlined text-[19px]">edit</span>
                           </button>
                         )}
-                        {/* Send to approval (draft only) */}
-                        {s.status === "draft" && (
+                        {/* Ajukan ke pimpinan (draft or ditolak) */}
+                        {userRole !== "pimpinan" && (s.status === "draft" || s.status === "ditolak") && (
                           <button
                             onClick={() => handleSendApproval(s.id)}
                             disabled={sendingId === s.id}
-                            title="Kirim ke Approval"
+                            title="Ajukan ke Pimpinan"
                             className="p-1.5 rounded-md text-on-surface-variant hover:text-secondary hover:bg-secondary-container/30 transition-colors disabled:opacity-50">
                             {sendingId === s.id
                               ? <span className="material-symbols-outlined text-[19px] animate-spin">progress_activity</span>
@@ -412,10 +424,12 @@ export default function SuratKeluarPage() {
                           </button>
                         )}
                         {/* Delete */}
-                        <button onClick={() => setConfirmDeleteId(s.id)} title="Hapus"
-                          className="p-1.5 rounded-md text-on-surface-variant hover:text-error hover:bg-error-container/40 transition-colors">
-                          <span className="material-symbols-outlined text-[19px]">delete</span>
-                        </button>
+                        {userRole === "admin" && (
+                          <button onClick={() => setConfirmDeleteId(s.id)} title="Hapus"
+                            className="p-1.5 rounded-md text-on-surface-variant hover:text-error hover:bg-error-container/40 transition-colors">
+                            <span className="material-symbols-outlined text-[19px]">delete</span>
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

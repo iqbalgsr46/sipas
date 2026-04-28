@@ -54,7 +54,7 @@ export default function LoginPage() {
         localStorage.setItem("sipas_user", JSON.stringify({
           id: authData.user.id,
           email: authData.user.email,
-          role: "user"
+          role: "staf"
         }));
       }
 

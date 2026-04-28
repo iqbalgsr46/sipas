@@ -158,7 +158,7 @@ export default function SettingsPage() {
   const getRoleBadgeStyle = (role: string) => {
     const map: Record<string, string> = {
       admin: "bg-error-container text-on-error-container",
-      user: "bg-secondary-container text-on-secondary-container",
+      staf: "bg-secondary-container text-on-secondary-container",
       pimpinan: "bg-primary-container text-on-primary-container",
     };
     return map[role] || "bg-surface-variant text-on-surface-variant";

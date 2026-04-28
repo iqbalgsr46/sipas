@@ -2,12 +2,10 @@
  * Database Types for Supabase
  * ============================
  * TypeScript interface yang merepresentasikan
- * struktur database Supabase SIPAS.
+ * struktur database Supabase SIPAS (Simplified).
  *
- * Setiap tabel memiliki 3 bagian:
- * - Row    → Tipe data saat SELECT (baca)
- * - Insert → Tipe data saat INSERT (tambah)
- * - Update → Tipe data saat UPDATE (edit)
+ * Role: admin | staf | pimpinan (static, hardcoded)
+ * Tanpa disposisi, tanpa role dinamis, tanpa permission dinamis.
  */
 
 // =============================================
@@ -20,27 +18,11 @@ export interface User {
   full_name: string;
   username: string;
   email: string;
-  role: "admin" | "user" | "pimpinan";
+  role: "admin" | "staf" | "pimpinan";
   status: "aktif" | "nonaktif";
   avatar_url?: string | null;
   created_at: string;
   updated_at: string;
-}
-
-export interface Role {
-  id: string;
-  name: string;
-  description: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface RolePermission {
-  id: string;
-  role_name: string;
-  resource: string;
-  action: string;
-  created_at: string;
 }
 
 /** Surat yang diterima instansi */
@@ -66,32 +48,14 @@ export interface SuratKeluar {
   tujuan: string;
   perihal: string;
   tanggal_surat: string;
-  status: "draft" | "menunggu_approval" | "disetujui" | "ditolak";
+  status: "draft" | "diajukan" | "disetujui" | "ditolak";
   konten: string | null;
   file_url: string | null;
   created_by: string | null;
+  approved_by: string | null;
+  approved_at: string | null;
   created_at: string;
   updated_at: string;
-}
-
-/** Disposisi surat masuk ke pegawai */
-export interface Disposisi {
-  id: string;
-  surat_masuk_id: string;
-  assigned_to: string;
-  catatan: string | null;
-  status: "pending" | "selesai";
-  created_at: string;
-}
-
-/** Catatan persetujuan surat keluar */
-export interface Approval {
-  id: string;
-  surat_keluar_id: string;
-  approved_by: string;
-  action: "approved" | "rejected";
-  catatan: string | null;
-  created_at: string;
 }
 
 // =============================================
@@ -102,7 +66,7 @@ export type UserInsert = {
   full_name: string;
   username: string;
   email: string;
-  role?: "admin" | "user" | "pimpinan";
+  role?: "admin" | "staf" | "pimpinan";
   status?: "aktif" | "nonaktif";
 };
 
@@ -123,17 +87,10 @@ export type SuratKeluarInsert = {
   tujuan: string;
   perihal: string;
   tanggal_surat?: string;
-  status?: "draft" | "menunggu_approval" | "disetujui" | "ditolak";
+  status?: "draft" | "diajukan" | "disetujui" | "ditolak";
   konten?: string | null;
   file_url?: string | null;
   created_by?: string | null;
-};
-
-export type ApprovalInsert = {
-  surat_keluar_id: string;
-  approved_by: string;
-  action: "approved" | "rejected";
-  catatan?: string | null;
 };
 
 // =============================================
@@ -165,48 +122,6 @@ export interface Database {
         Row: SuratKeluar;
         Insert: SuratKeluarInsert;
         Update: SuratKeluarUpdate;
-      };
-      disposisi: {
-        Row: Disposisi;
-        Insert: {
-          surat_masuk_id: string;
-          assigned_to: string;
-          catatan?: string | null;
-          status?: "pending" | "selesai";
-        };
-        Update: {
-          catatan?: string | null;
-          status?: "pending" | "selesai";
-        };
-      };
-      approvals: {
-        Row: Approval;
-        Insert: ApprovalInsert;
-        Update: Partial<ApprovalInsert>;
-      };
-      roles: {
-        Row: Role;
-        Insert: {
-          name: string;
-          description?: string | null;
-        };
-        Update: {
-          name?: string;
-          description?: string | null;
-        };
-      };
-      role_permissions: {
-        Row: RolePermission;
-        Insert: {
-          role_name: string;
-          resource: string;
-          action: string;
-        };
-        Update: {
-          role_name?: string;
-          resource?: string;
-          action?: string;
-        };
       };
     };
     Views: Record<string, never>;

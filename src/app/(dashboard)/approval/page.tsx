@@ -47,7 +47,7 @@ export default function ApprovalPage() {
     try {
       const { data, error } = await supabase
         .from("surat_keluar").select("*")
-        .eq("status", "menunggu_approval")
+        .eq("status", "diajukan")
         .order("created_at", { ascending: false });
       if (error) throw error;
       const list = (data ?? []) as SuratKeluar[];
@@ -65,27 +65,16 @@ export default function ApprovalPage() {
     setActionLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      let userId = user?.id;
-      if (!userId) {
-        try {
-          const local = JSON.parse(localStorage.getItem("sipas_user") || "{}");
-          userId = local.id;
-        } catch {}
-      }
-      if (!userId) throw new Error("Sesi berakhir. Silakan login kembali.");
+      if (!user) throw new Error("Sesi berakhir. Silakan login kembali.");
 
       const { data: updateData, error: updateError } = await supabase.from("surat_keluar")
-        .update({ status: "disetujui" } as any).eq("id", selectedSurat.id).select();
+        .update({
+          status: "disetujui",
+          approved_by: user.id,
+          approved_at: new Date().toISOString(),
+        } as any).eq("id", selectedSurat.id).select();
       if (updateError) throw updateError;
       if (!updateData || updateData.length === 0) throw new Error("Akses ditolak (RLS). Pastikan Anda punya hak akses.");
-
-      const { error: logError } = await supabase.from("approvals").insert([{
-        surat_keluar_id: selectedSurat.id,
-        approved_by: userId,
-        action: "approved",
-        catatan: approveNote.trim() || "Disetujui oleh pimpinan",
-      } as any]);
-      if (logError) throw logError;
 
       showToast("success", "Dokumen Disetujui", `Surat ${selectedSurat.nomor_surat} berhasil disetujui.`);
       setApproveNote("");
@@ -108,27 +97,16 @@ export default function ApprovalPage() {
     setActionLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      let userId = user?.id;
-      if (!userId) {
-        try {
-          const local = JSON.parse(localStorage.getItem("sipas_user") || "{}");
-          userId = local.id;
-        } catch {}
-      }
-      if (!userId) throw new Error("Sesi berakhir. Silakan login kembali.");
+      if (!user) throw new Error("Sesi berakhir. Silakan login kembali.");
 
       const { data: updateData, error: updateError } = await supabase.from("surat_keluar")
-        .update({ status: "ditolak" } as any).eq("id", selectedSurat.id).select();
+        .update({
+          status: "ditolak",
+          approved_by: user.id,
+          approved_at: new Date().toISOString(),
+        } as any).eq("id", selectedSurat.id).select();
       if (updateError) throw updateError;
       if (!updateData || updateData.length === 0) throw new Error("Akses ditolak (RLS). Pastikan Anda punya hak akses.");
-
-      const { error: logError } = await supabase.from("approvals").insert([{
-        surat_keluar_id: selectedSurat.id,
-        approved_by: userId,
-        action: "rejected",
-        catatan: rejectReason.trim(),
-      } as any]);
-      if (logError) throw logError;
 
       showToast("warning", "Dokumen Ditolak", `Surat ${selectedSurat.nomor_surat} telah ditolak.`);
       setRejectReason("");
@@ -202,7 +180,7 @@ export default function ApprovalPage() {
               >
                 {selectedSurat?.id === surat.id && <div className="absolute left-0 top-2 bottom-2 w-1 bg-primary rounded-r" />}
                 <div className="flex justify-between items-start mb-2">
-                  <span className="bg-tertiary-container text-on-tertiary-container font-inter text-[10px] font-bold tracking-wider px-2 py-0.5 rounded">MENUNGGU</span>
+                  <span className="bg-tertiary-container text-on-tertiary-container font-inter text-[10px] font-bold tracking-wider px-2 py-0.5 rounded">DIAJUKAN</span>
                   <span className="font-inter text-xs text-on-surface-variant">
                     {new Date(surat.tanggal_surat).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}
                   </span>
