@@ -38,7 +38,10 @@ export default function SettingsPage() {
       if (error) throw error;
       if (data) {
         setProfile(data);
-        setForm({ full_name: data.full_name || "", username: data.username || "" });
+        setForm({ 
+          full_name: data.full_name?.replace(/\s*\(.*?\)\s*/g, '') || "", 
+          username: data.username || "" 
+        });
         setAvatarUrl(data.avatar_url || null);
       }
     } catch {
@@ -174,20 +177,20 @@ export default function SettingsPage() {
 
       {/* Profile Card */}
       <div className="bg-surface rounded-2xl border border-outline-variant shadow-sm overflow-hidden">
-        {/* Hero Header */}
-        <div className="relative bg-gradient-to-br from-primary via-primary-container to-primary p-6 sm:p-8">
-          <div className="absolute inset-0 opacity-10">
-            <div className="absolute right-0 top-0 w-64 h-64 bg-surface-container-lowest rounded-full blur-3xl -translate-y-1/3 translate-x-1/4" />
-          </div>
-          <div className="relative z-10 flex flex-col sm:flex-row items-center gap-5">
-            {/* Avatar */}
+        {/* Header Section */}
+        <div className="p-6 sm:p-8 border-b border-outline-variant flex flex-col sm:flex-row items-center gap-6 relative">
+          {/* Subtle background decoration */}
+          <div className="absolute right-0 top-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
+          
+          <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-start gap-6 w-full">
+            {/* Circular Avatar */}
             <div
-              className="relative group cursor-pointer"
+              className="relative group cursor-pointer shrink-0"
               onClick={() => fileRef.current?.click()}
               onDragOver={(e) => e.preventDefault()}
               onDrop={handleDrop}
             >
-              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl border-3 border-on-primary/20 overflow-hidden bg-on-primary/15 flex items-center justify-center shadow-lg">
+              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-surface overflow-hidden bg-primary text-on-primary flex items-center justify-center shadow-md ring-1 ring-outline-variant/50">
                 {avatarUrl ? (
                   <img
                     src={avatarUrl}
@@ -195,19 +198,19 @@ export default function SettingsPage() {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <span className="text-on-primary text-4xl sm:text-5xl font-bold uppercase font-public-sans">
-                    {profile.full_name?.charAt(0) || "U"}
+                  <span className="text-4xl sm:text-5xl font-bold uppercase font-public-sans">
+                    {(profile.full_name || "User").replace(/\s*\(.*?\)\s*/g, '').charAt(0)}
                   </span>
                 )}
               </div>
               {/* Hover overlay */}
-              <div className="absolute inset-0 rounded-2xl bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
                 {uploadingAvatar ? (
                   <span className="material-symbols-outlined animate-spin text-white text-[28px]">progress_activity</span>
                 ) : (
                   <div className="flex flex-col items-center text-white">
                     <span className="material-symbols-outlined text-[24px]">photo_camera</span>
-                    <span className="font-inter text-[10px] font-bold mt-1">UBAH FOTO</span>
+                    <span className="font-inter text-[10px] font-bold mt-1">UBAH</span>
                   </div>
                 )}
               </div>
@@ -224,18 +227,21 @@ export default function SettingsPage() {
               />
             </div>
 
-            <div className="text-center sm:text-left">
-              <h3 className="text-xl sm:text-2xl font-bold text-on-primary font-public-sans tracking-tight">
-                {profile.full_name}
+            <div className="text-center sm:text-left flex-1">
+              <h3 className="text-xl sm:text-2xl font-bold text-on-surface font-public-sans tracking-tight">
+                {(profile.full_name || "User").replace(/\s*\(.*?\)\s*/g, '')}
               </h3>
-              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5 mt-2">
-                <span className={`px-2.5 py-0.5 rounded-lg text-xs font-bold uppercase tracking-wider ${getRoleBadgeStyle(profile.role)}`}>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mt-1.5">
+                <span className={`inline-flex w-fit mx-auto sm:mx-0 px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-widest ${getRoleBadgeStyle(profile.role)}`}>
                   {profile.role}
                 </span>
-                <span className="text-on-primary/60 text-sm font-inter">{profile.email}</span>
+                <span className="text-on-surface-variant text-sm font-inter flex items-center justify-center sm:justify-start gap-1.5">
+                  <span className="material-symbols-outlined text-[14px]">mail</span>
+                  {profile.email}
+                </span>
               </div>
-              <p className="font-inter text-xs text-on-primary/50 mt-2">
-                Klik foto untuk mengganti • Maks. 2 MB
+              <p className="font-inter text-[11px] text-outline mt-3">
+                Format yang didukung: JPG, PNG, GIF • Maks. 2 MB
               </p>
             </div>
           </div>
@@ -250,12 +256,17 @@ export default function SettingsPage() {
                 <span className="material-symbols-outlined text-[14px]">mail</span>
                 Email
               </label>
-              <input
-                type="email"
-                value={profile.email}
-                disabled
-                className="w-full px-4 py-3 bg-surface-container-high border border-outline-variant rounded-xl font-inter text-sm text-on-surface-variant cursor-not-allowed"
-              />
+              <div className="relative">
+                <input
+                  type="email"
+                  value={profile.email}
+                  disabled
+                  className="w-full pl-10 pr-4 py-2.5 bg-surface-container-high border-transparent rounded-xl font-inter text-sm text-on-surface-variant cursor-not-allowed"
+                />
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-on-surface-variant/50">
+                  lock
+                </span>
+              </div>
               <p className="text-[11px] text-outline mt-1.5 flex items-center gap-1 font-inter">
                 <span className="material-symbols-outlined text-[12px]">lock</span>
                 Tidak dapat diubah
@@ -268,12 +279,17 @@ export default function SettingsPage() {
                 <span className="material-symbols-outlined text-[14px]">shield_person</span>
                 Role
               </label>
-              <input
-                type="text"
-                value={profile.role}
-                disabled
-                className="w-full px-4 py-3 bg-surface-container-high border border-outline-variant rounded-xl font-inter text-sm text-on-surface-variant cursor-not-allowed uppercase"
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  value={profile.role}
+                  disabled
+                  className="w-full pl-10 pr-4 py-2.5 bg-surface-container-high border-transparent rounded-xl font-inter text-sm text-on-surface-variant cursor-not-allowed uppercase"
+                />
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-on-surface-variant/50">
+                  lock
+                </span>
+              </div>
             </div>
 
             {/* Full Name */}
@@ -288,7 +304,7 @@ export default function SettingsPage() {
                 onChange={(e) => setForm({ ...form, full_name: e.target.value })}
                 placeholder="Nama lengkap Anda"
                 required
-                className="w-full px-4 py-3 bg-surface-container-low border border-outline-variant rounded-xl font-inter text-sm text-on-surface focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
+                className="w-full px-4 py-2.5 bg-surface-container-lowest border border-outline-variant rounded-xl font-inter text-sm text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all shadow-sm"
               />
             </div>
 
@@ -304,7 +320,7 @@ export default function SettingsPage() {
                 onChange={(e) => setForm({ ...form, username: e.target.value })}
                 placeholder="Username unik Anda"
                 required
-                className="w-full px-4 py-3 bg-surface-container-low border border-outline-variant rounded-xl font-inter text-sm text-on-surface focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
+                className="w-full px-4 py-2.5 bg-surface-container-lowest border border-outline-variant rounded-xl font-inter text-sm text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all shadow-sm"
               />
             </div>
           </div>
@@ -327,8 +343,11 @@ export default function SettingsPage() {
           <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 mt-6">
             <button
               type="button"
-              onClick={() => setForm({ full_name: profile.full_name || "", username: profile.username || "" })}
-              className="px-5 py-2.5 border border-outline-variant rounded-xl font-inter text-sm font-medium text-on-surface-variant hover:bg-surface-container-low transition-colors"
+              onClick={() => setForm({ 
+                full_name: profile.full_name?.replace(/\s*\(.*?\)\s*/g, '') || "", 
+                username: profile.username || "" 
+              })}
+              className="px-5 py-2.5 border border-outline-variant rounded-xl font-inter text-sm font-semibold text-on-surface-variant hover:bg-surface-container-low transition-colors"
             >
               Reset
             </button>
