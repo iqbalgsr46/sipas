@@ -144,7 +144,7 @@ export default function DashboardPage() {
     {
       label: "Surat Masuk",
       value: stats.totalMasuk,
-      icon: "visibility", // icon mata
+      icon: "inbox", // icon kotak masuk
       color: "bg-[#dcfce7]", // hijau pastel cerah
       iconColor: "text-[#10b981]", // hijau solid
       href: "/surat-masuk",
@@ -152,7 +152,7 @@ export default function DashboardPage() {
     {
       label: "Surat Keluar",
       value: stats.totalKeluar,
-      icon: "shopping_bag", // icon tas
+      icon: "send", // icon pesawat kertas (kirim)
       color: "bg-[#e0f2fe]", // biru pastel cerah
       iconColor: "text-[#3b82f6]", // biru solid
       href: "/surat-keluar",
@@ -160,7 +160,7 @@ export default function DashboardPage() {
     {
       label: "Menunggu Approval",
       value: stats.pendingApproval,
-      icon: "mail", // icon amplop
+      icon: "pending_actions", // icon clipboard pending
       color: "bg-[#f3e8ff]", // ungu pastel cerah
       iconColor: "text-[#8b5cf6]", // ungu solid
       href: "/approval",
@@ -254,7 +254,7 @@ export default function DashboardPage() {
             <div className="flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
               <span 
                 className={`material-symbols-outlined icon-fill ${card.iconColor}`}
-                style={{ fontSize: "56px", lineHeight: 1 }}
+                style={{ fontSize: "45px", lineHeight: 1 }}
               >
                 {card.icon}
               </span>
