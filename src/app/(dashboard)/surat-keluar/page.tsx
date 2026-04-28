@@ -133,8 +133,14 @@ export default function SuratKeluarPage() {
       created_by: user.id,
     } as any]);
 
-    if (error) showToast("error", "Gagal Menambah Surat", error.message);
-    else {
+    if (error) {
+      // Tangkap error UNIQUE constraint dari database (nomor surat duplikat)
+      if (error.code === '23505' || error.message?.includes('surat_keluar_nomor_surat_unique')) {
+        showToast("error", "Nomor Surat Sudah Digunakan", `Nomor "${form.nomor_surat}" sudah ada. Gunakan nomor surat yang berbeda.`);
+      } else {
+        showToast("error", "Gagal Menambah Surat", error.message);
+      }
+    } else {
       showToast("success", "Surat Keluar Dibuat", `Nomor: ${form.nomor_surat}`);
       closeModal();
       fetchData();
@@ -159,8 +165,14 @@ export default function SuratKeluarPage() {
       } as any)
       .eq("id", selected.id);
 
-    if (error) showToast("error", "Gagal Update", error.message);
-    else {
+    if (error) {
+      // Tangkap error UNIQUE constraint saat edit nomor surat
+      if (error.code === '23505' || error.message?.includes('surat_keluar_nomor_surat_unique')) {
+        showToast("error", "Nomor Surat Sudah Digunakan", `Nomor "${form.nomor_surat}" sudah dipakai surat lain. Gunakan nomor yang berbeda.`);
+      } else {
+        showToast("error", "Gagal Update", error.message);
+      }
+    } else {
       showToast("success", "Surat Berhasil Diperbarui");
       closeModal();
       fetchData();

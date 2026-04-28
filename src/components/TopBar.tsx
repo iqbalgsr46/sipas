@@ -377,6 +377,19 @@ export default function TopBar() {
                     const reason = parts[1];
                     const isExpanded = expandedNotifId === notif.id;
 
+                    // Tentukan ikon & warna berdasarkan kolom `type` (v2.0)
+                    const notifStyle = (() => {
+                      const t = notif.type || (
+                        notif.title?.includes("Approval") ? "submission" :
+                        notif.title?.includes("Ditolak") || notif.title?.includes("DITOLAK") ? "rejection" :
+                        notif.title?.includes("Disetujui") || notif.title?.includes("DISETUJUI") ? "approval" : "info"
+                      );
+                      if (t === "submission") return { icon: "description", bg: "bg-blue-100 dark:bg-blue-900/40", color: "text-blue-600 dark:text-blue-300" };
+                      if (t === "approval")   return { icon: "task_alt",    bg: "bg-green-100 dark:bg-green-900/40", color: "text-green-600 dark:text-green-300" };
+                      if (t === "rejection")  return { icon: "cancel",      bg: "bg-red-100 dark:bg-red-900/40",   color: "text-red-600 dark:text-red-300" };
+                      return { icon: "notifications", bg: "bg-surface-container-high", color: "text-on-surface-variant" };
+                    })();
+
                     return (
                       <div
                         key={notif.id}
@@ -386,10 +399,10 @@ export default function TopBar() {
                         } ${reason ? "cursor-pointer hover:bg-surface-container-low" : "cursor-pointer"}`}
                       >
                         <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${
-                          notif.is_read ? "bg-surface-container-high text-on-surface-variant" : "bg-primary-container text-on-primary-container"
+                          notif.is_read ? "bg-surface-container-high text-on-surface-variant" : `${notifStyle.bg} ${notifStyle.color}`
                         }`}>
                           <span className="material-symbols-outlined text-[18px]">
-                            {notif.title?.includes("Approval") ? "approval" : notif.title?.includes("Ditolak") || notif.title?.includes("DITOLAK") ? "cancel" : "notifications"}
+                            {notif.is_read ? "notifications" : notifStyle.icon}
                           </span>
                         </div>
                         <div className="flex-1 min-w-0">

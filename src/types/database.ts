@@ -36,7 +36,7 @@ export interface SuratMasuk {
   status: "belum_dibaca" | "diproses" | "selesai";
   keterangan: string | null;
   file_url: string | null;
-  registered_by: string | null;
+  registered_by: string; // NOT NULL (v2.0)
   created_at: string;
   updated_at: string;
 }
@@ -44,10 +44,10 @@ export interface SuratMasuk {
 /** Surat yang dikirim keluar instansi */
 export interface SuratKeluar {
   id: string;
-  nomor_surat: string;
+  nomor_surat: string; // UNIQUE (v2.0)
   tujuan: string;
   perihal: string;
-  tanggal_surat: string;
+  tanggal_surat: string; // NOT NULL (v2.0)
   status: "draft" | "diajukan" | "disetujui" | "ditolak";
   konten: string | null;
   file_url: string | null;
@@ -59,8 +59,30 @@ export interface SuratKeluar {
 }
 
 // =============================================
-// Insert types (tanpa id dan timestamps)
+// Tipe tambahan v2.0
 // =============================================
+
+/** Notifikasi dengan kolom type (v2.0) */
+export interface Notification {
+  id: string;
+  user_id: string;
+  title: string;
+  message: string;
+  type: "submission" | "approval" | "rejection" | "info";
+  is_read: boolean;
+  created_at: string;
+}
+
+/** Log aktivitas pengguna (v2.0) */
+export interface ActivityLog {
+  id: string;
+  user_id: string;
+  action: string;
+  target_id: string | null;
+  metadata: Record<string, unknown> | null;
+  created_at: string;
+}
+
 
 export type UserInsert = {
   full_name: string;
