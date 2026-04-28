@@ -254,7 +254,7 @@ export default function DashboardPage() {
             <div className="flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
               <span 
                 className={`material-symbols-outlined icon-fill ${card.iconColor}`}
-                style={{ fontSize: "72px", lineHeight: 1 }}
+                style={{ fontSize: "56px", lineHeight: 1 }}
               >
                 {card.icon}
               </span>
