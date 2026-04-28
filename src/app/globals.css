@@ -1,10 +1,11 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:is(.dark *));
+
 /* ============================================
  * SIPAS Design System - Tailwind CSS v4
  * Material Design 3 Color Tokens
  * ============================================ */
-
 
 :root {
   --sys-primary: #00288e;
@@ -161,13 +162,21 @@
   --color-inverse-on-surface: var(--sys-inverse-on-surface);
   --color-outline: var(--sys-outline);
   --color-outline-variant: var(--sys-outline-variant);
+  --animate-background-position-spin: background-position-spin 3000ms infinite alternate;
+  @keyframes background-position-spin {
+  0% {
+    background-position: top center;
+    }
+  100% {
+    background-position: bottom center;
+    }
+  }
 
 }
 
 /* ============================================
  * Dark Mode Palette (Material Design 3)
  * ============================================ */
-
 
 /* ============================================
  * Base Styles

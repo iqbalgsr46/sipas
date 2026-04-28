@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import Beams from "@/components/Beams";
+import { NeonGradientCard } from "@/components/ui/neon-gradient-card";
 
 /**
  * Halaman Login SIPAS
@@ -98,7 +99,13 @@ export default function LoginPage() {
           className="relative left-[calc(50%+3rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-40 sm:left-[calc(50%+36rem)] sm:w-[72.1875rem]"
         />
       </div>
-      <div className="relative z-10 w-full max-w-[420px] bg-white/5 dark:bg-black/20 backdrop-blur-2xl rounded-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] p-8 border border-white/10 flex flex-col items-center">
+      <NeonGradientCard 
+        className="w-full max-w-[420px]"
+        borderSize={2}
+        borderRadius={20}
+        neonColors={{ firstColor: "#9333ea", secondColor: "#3b82f6" }}
+      >
+        <div className="relative z-10 w-full h-full bg-white/10 dark:bg-black/30 backdrop-blur-3xl rounded-[18px] shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] p-8 border border-white/20 flex flex-col items-center">
         {/* Brand / Header */}
         <div className="flex flex-col items-center mb-8 text-center">
           {/* Logo Lambang Kabupaten Karawang */}
@@ -239,6 +246,7 @@ export default function LoginPage() {
           </button>
         </form>
       </div>
+      </NeonGradientCard>
 
       {/* Footer */}
       <p className="absolute bottom-6 text-center text-on-surface-variant font-inter text-sm">
