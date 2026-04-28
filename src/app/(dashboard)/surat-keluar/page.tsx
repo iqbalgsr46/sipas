@@ -360,9 +360,9 @@ export default function SuratKeluarPage() {
       </div>
 
       {/* ── Table Card ── */}
-      <div className="bg-white/40 dark:bg-black/20 backdrop-blur-2xl border border-white/50 dark:border-white/10 rounded-xl shadow-xl overflow-hidden">
+      <div className="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm overflow-hidden">
         {/* Filter Bar */}
-        <div className="px-5 py-3.5 border-b border-outline-variant bg-white/30 dark:bg-black/30 flex flex-wrap items-center gap-3">
+        <div className="px-5 py-3.5 border-b border-outline-variant bg-surface-container flex flex-wrap items-center gap-3">
           <span className="font-inter text-xs font-bold text-on-surface-variant uppercase tracking-wider">Filter:</span>
           {["", "draft", "diajukan", "disetujui", "ditolak"].map((val) => (
             <button key={val}
@@ -386,13 +386,13 @@ export default function SuratKeluarPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-white/30 dark:bg-black/30 border-b border-outline-variant/50">
+                <tr className="bg-surface-container border-b border-outline-variant">
                   {["Nomor Surat", "Tanggal", "Tujuan", "Perihal", "Status", "Aksi"].map((h) => (
                     <th key={h} className={`py-3 px-4 font-inter text-xs font-bold text-on-surface-variant uppercase tracking-wider ${h === "Aksi" ? "text-center" : ""}`}>{h}</th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-outline-variant/50 font-inter text-sm">
+              <tbody className="divide-y divide-outline-variant font-inter text-sm">
                 {suratList.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="py-16 text-center text-on-surface-variant">
@@ -401,7 +401,7 @@ export default function SuratKeluarPage() {
                     </td>
                   </tr>
                 ) : suratList.map((s) => (
-                  <tr key={s.id} className="hover:bg-white/30 dark:hover:bg-white/5 transition-colors">
+                  <tr key={s.id} className="hover:bg-surface-container-low transition-colors">
                     <td className="py-3.5 px-4 font-medium text-on-surface whitespace-nowrap">{s.nomor_surat}</td>
                     <td className="py-3.5 px-4 text-on-surface-variant whitespace-nowrap">
                       {new Date(s.tanggal_surat).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
