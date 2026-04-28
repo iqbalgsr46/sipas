@@ -200,19 +200,19 @@ export default function DashboardPage() {
                 {userName.split(" ")[0]}
               </span>
             </h1>
-            <div className="flex flex-wrap items-center gap-2 mt-2">
-              <p className="font-inter text-base text-white/80 whitespace-nowrap">
+            <div className="flex flex-col md:flex-row md:items-center md:flex-wrap gap-2 md:gap-3 mt-3 md:mt-2">
+              <p className="font-inter text-sm md:text-base text-white/90 leading-relaxed md:leading-normal">
                 Berikut ringkasan operasional harian Anda.
               </p>
               {stats.pendingApproval > 0 && (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/20 text-white text-sm font-semibold whitespace-nowrap">
+                <span className="inline-flex w-fit items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-white text-sm font-semibold whitespace-nowrap">
                   <span className="material-symbols-outlined text-[16px]">priority_high</span>
                   {stats.pendingApproval} item menunggu tindakan
                 </span>
               )}
             </div>
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-wrap md:flex-nowrap gap-3 mt-4 md:mt-0">
             <Link
               href="/surat-masuk"
               className="flex items-center gap-2 px-5 py-2.5 bg-white text-blue-700 font-inter text-sm font-semibold rounded-xl shadow-sm hover:shadow-md hover:bg-gray-50 transition-all"

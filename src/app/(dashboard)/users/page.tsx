@@ -400,29 +400,29 @@ export default function UsersPage() {
 
       {/* ── Delete Confirm ── */}
       {confirmDeleteId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-2xl w-full max-w-sm p-6 flex flex-col gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-full bg-error-container text-error flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined">person_remove</span>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-2xl w-[90vw] max-w-[400px] p-6 flex flex-col gap-5">
+            <div className="flex items-start sm:items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-error-container text-error flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-[24px]">person_remove</span>
               </div>
               <div>
-                <h4 className="font-public-sans font-bold text-on-surface">Hapus Pengguna?</h4>
-                <p className="font-inter text-sm text-on-surface-variant mt-0.5">
+                <h4 className="font-public-sans text-lg font-bold text-on-surface">Hapus Pengguna?</h4>
+                <p className="font-inter text-sm text-on-surface-variant mt-0.5 leading-relaxed">
                   User akan dihapus permanen dari sistem.
                 </p>
               </div>
             </div>
-            <div className="flex gap-3">
+            <div className="grid grid-cols-2 gap-3 mt-2">
               <button onClick={() => setConfirmDeleteId(null)} disabled={deleting}
-                className="flex-1 py-2.5 border border-outline-variant text-on-surface-variant rounded-lg font-inter text-sm font-semibold hover:bg-surface-container-low transition-colors disabled:opacity-50">
+                className="w-full py-2.5 border border-outline-variant text-on-surface-variant rounded-xl font-inter text-sm font-semibold hover:bg-surface-container-low transition-colors disabled:opacity-50">
                 Batal
               </button>
               <button onClick={handleDelete} disabled={deleting}
-                className="flex-1 py-2.5 bg-error text-on-error rounded-lg font-inter text-sm font-semibold hover:opacity-90 transition flex items-center justify-center gap-2 disabled:opacity-50">
+                className="w-full py-2.5 bg-error text-on-error rounded-xl font-inter text-sm font-semibold hover:bg-error/90 transition flex items-center justify-center gap-2 disabled:opacity-50 shadow-sm">
                 {deleting
-                  ? <><span className="material-symbols-outlined animate-spin text-[18px]">progress_activity</span>Menghapus…</>
-                  : <><span className="material-symbols-outlined text-[18px]">delete</span>Ya, Hapus</>}
+                  ? <><span className="material-symbols-outlined animate-spin text-[18px]">progress_activity</span>...</>
+                  : <><span className="material-symbols-outlined text-[18px]">delete</span>Hapus</>}
               </button>
             </div>
           </div>
