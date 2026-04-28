@@ -5,11 +5,11 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const allNavItems = [
-  { href: "/dashboard", icon: "dashboard", label: "Dashboard", roles: ["admin", "staf", "pimpinan"] },
+  { href: "/dashboard", icon: "space_dashboard", label: "Dashboard", roles: ["admin", "staf", "pimpinan"] },
   { href: "/surat-masuk", icon: "mail", label: "Surat Masuk", roles: ["admin", "staf", "pimpinan"] },
   { href: "/surat-keluar", icon: "send", label: "Surat Keluar", roles: ["admin", "staf", "pimpinan"] },
-  { href: "/approval", icon: "rule", label: "Approval", roles: ["admin", "pimpinan"] },
-  { href: "/users", icon: "manage_accounts", label: "Manajemen User", roles: ["admin"] },
+  { href: "/approval", icon: "pending_actions", label: "Approval", roles: ["admin", "pimpinan"] },
+  { href: "/users", icon: "group", label: "Manajemen User", roles: ["admin"] },
   { href: "/settings", icon: "settings", label: "Pengaturan", roles: ["admin", "staf", "pimpinan"] },
 ];
 
@@ -51,10 +51,10 @@ export default function Sidebar() {
                 : "border-transparent text-on-surface-variant hover:text-primary hover:bg-surface-container-low"
             }`}
           >
-            <span className={`material-symbols-outlined text-[20px] ${isActive ? "icon-fill" : ""}`}>
+            <span className={`material-symbols-outlined text-[24px] ${isActive ? "icon-fill" : ""}`}>
               {item.icon}
             </span>
-            <span>{item.label}</span>
+            <span className="text-[15px]">{item.label}</span>
           </Link>
         );
       })}
