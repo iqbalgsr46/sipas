@@ -227,7 +227,7 @@ export default function LoginPage() {
 
       {/* Footer */}
       <p className="absolute bottom-6 text-center text-on-surface-variant font-inter text-sm">
-        © 2024 SIPAS Digital. All rights reserved.
+        © 2026 SIPAS Digital. All rights reserved.
       </p>
     </main>
   );

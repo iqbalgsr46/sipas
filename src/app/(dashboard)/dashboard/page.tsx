@@ -140,40 +140,39 @@ export default function DashboardPage() {
     );
   }
 
-  const statsCards = [
     {
       label: "Surat Masuk",
       value: stats.totalMasuk,
-      icon: "mark_email_unread",
-      color: "bg-primary-container",
-      iconColor: "text-on-primary-container",
+      icon: "visibility", // icon mata (hijau)
+      color: "bg-[#e8f5e9] dark:bg-green-900/20",
+      iconColor: "text-[#00897b] dark:text-[#4db6ac]",
       href: "/surat-masuk",
     },
     {
       label: "Surat Keluar",
       value: stats.totalKeluar,
-      icon: "outgoing_mail",
-      color: "bg-secondary-container",
-      iconColor: "text-on-secondary-container",
+      icon: "work", // icon koper/tas (biru)
+      color: "bg-[#e1f5fe] dark:bg-sky-900/20",
+      iconColor: "text-[#1e88e5] dark:text-[#64b5f6]",
       href: "/surat-keluar",
     },
     {
       label: "Menunggu Approval",
       value: stats.pendingApproval,
-      icon: "pending_actions",
-      color: "bg-tertiary-container",
-      iconColor: "text-on-tertiary-container",
+      icon: "mail", // icon amplop (ungu)
+      color: "bg-[#ede7f6] dark:bg-purple-900/20",
+      iconColor: "text-[#5e35b1] dark:text-[#9575cd]",
       href: "/approval",
       highlight: stats.pendingApproval > 0,
     },
     {
       label: "Total Pengguna",
       value: stats.totalUsers,
-      icon: "group",
-      color: "bg-surface-variant",
-      iconColor: "text-on-surface-variant",
+      icon: "group", // icon users (orange)
+      color: "bg-[#fff3e0] dark:bg-orange-900/20",
+      iconColor: "text-[#f57c00] dark:text-[#ffb74d]",
       href: "/users",
-    },
+    }
   ];
 
   return (
@@ -239,30 +238,21 @@ export default function DashboardPage() {
           <Link
             key={card.label}
             href={card.href}
-            className={`bg-surface rounded-2xl p-5 border shadow-sm hover:shadow-md transition-all group cursor-pointer ${
-              card.highlight
-                ? "border-[#e65100]/30 ring-1 ring-[#e65100]/10"
-                : "border-outline-variant"
+            className={`rounded-[24px] p-6 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 group cursor-pointer flex items-center justify-between ${card.color} ${
+              card.highlight ? "ring-2 ring-[#5e35b1]/30 dark:ring-[#9575cd]/50" : ""
             }`}
           >
-            <div className="flex items-center justify-between mb-4">
-              <span className="font-inter text-sm font-medium text-on-surface-variant">
-                {card.label}
-              </span>
-              <div className={`w-10 h-10 rounded-xl ${card.color} flex items-center justify-center group-hover:scale-110 transition-transform`}>
-                <span className={`material-symbols-outlined icon-fill text-[22px] ${card.iconColor}`}>
-                  {card.icon}
-                </span>
-              </div>
-            </div>
-            <div className="flex items-end justify-between">
-              <span className={`font-public-sans text-4xl font-bold tracking-tight ${
-                card.highlight ? "text-[#e65100]" : "text-on-surface"
-              }`}>
+            <div className="flex flex-col justify-center">
+              <span className="font-public-sans text-4xl font-extrabold tracking-tight text-slate-800 dark:text-slate-100 mb-1">
                 {card.value}
               </span>
-              <span className="material-symbols-outlined text-on-surface-variant text-[20px] group-hover:translate-x-1 transition-transform">
-                arrow_forward
+              <span className="font-inter text-sm font-medium text-slate-600 dark:text-slate-300">
+                {card.label}
+              </span>
+            </div>
+            <div className="flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <span className={`material-symbols-outlined icon-fill text-[42px] ${card.iconColor}`}>
+                {card.icon}
               </span>
             </div>
           </Link>
