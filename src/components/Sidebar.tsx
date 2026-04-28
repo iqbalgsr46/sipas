@@ -125,7 +125,7 @@ export default function Sidebar({ isCollapsed = false }: { isCollapsed?: boolean
         `}
       >
         {/* Header: Brand + Close Button */}
-        <div className={`flex items-center ${isCollapsed ? "justify-center px-0" : "justify-between px-5"} py-4 border-b border-outline-variant shrink-0 min-h-[69px]`}>
+        <div className={`flex items-center ${isCollapsed ? "justify-center px-0" : "justify-between px-5"} h-[64px] border-b border-outline-variant shrink-0`}>
           <div className="flex items-center gap-3">
             {/* Lambang Kabupaten Karawang */}
             <div className="w-9 h-9 shrink-0">

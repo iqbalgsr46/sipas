@@ -212,7 +212,7 @@ export default function TopBar({ onHamburgerClick, isSidebarCollapsed }: { onHam
   };
 
   return (
-    <header className="sticky top-0 right-0 z-30 flex justify-between items-center pl-14 md:px-10 py-3 bg-surface-container-lowest/80 backdrop-blur-md border-b border-outline-variant shadow-sm">
+    <header className="sticky top-0 right-0 z-30 flex justify-between items-center pl-14 md:px-10 h-[64px] bg-surface-container-lowest/80 backdrop-blur-md border-b border-outline-variant shadow-sm">
       {/* Left: Search and Hamburger */}
       <div className="flex items-center gap-2 md:gap-4 flex-1">
         {onHamburgerClick && (
