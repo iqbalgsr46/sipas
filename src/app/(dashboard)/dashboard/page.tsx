@@ -264,7 +264,7 @@ export default function DashboardPage() {
       </section>
 
       {/* Recent Activity */}
-      <section className="bg-surface rounded-2xl border border-outline-variant shadow-sm overflow-hidden">
+      <section className="bg-white/40 dark:bg-black/20 backdrop-blur-2xl rounded-2xl border border-white/50 dark:border-white/10 shadow-xl overflow-hidden">
         <div className="px-6 py-5 border-b border-outline-variant flex justify-between items-center">
           <div>
             <h3 className="font-public-sans text-lg font-semibold text-on-surface">
@@ -278,7 +278,7 @@ export default function DashboardPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-surface-container-low border-b border-outline-variant">
+              <tr className="bg-white/30 dark:bg-black/30 border-b border-outline-variant/50">
                 <th className="py-3 px-6 font-inter text-[11px] font-bold text-on-surface-variant uppercase tracking-widest">
                   No. Surat
                 </th>
@@ -296,7 +296,7 @@ export default function DashboardPage() {
                 </th>
               </tr>
             </thead>
-            <tbody className="font-inter text-sm text-on-surface divide-y divide-outline-variant">
+            <tbody className="font-inter text-sm text-on-surface divide-y divide-outline-variant/50">
               {recentItems.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="py-12 px-6 text-center">
@@ -306,7 +306,7 @@ export default function DashboardPage() {
                 </tr>
               ) : (
                 recentItems.map((item) => (
-                  <tr key={item.id} className="hover:bg-surface-container-lowest/50 transition-colors">
+                  <tr key={item.id} className="hover:bg-white/30 dark:hover:bg-white/5 transition-colors group">
                     <td className="py-3.5 px-6 font-medium text-on-surface">{item.nomor_surat}</td>
                     <td className="py-3.5 px-6">
                       <div className="flex items-center gap-2">

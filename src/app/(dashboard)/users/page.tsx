@@ -316,7 +316,7 @@ export default function UsersPage() {
       </div>
 
       {/* ── Table ── */}
-      <div className="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm overflow-hidden">
+      <div className="bg-white/40 dark:bg-black/20 backdrop-blur-2xl border border-white/50 dark:border-white/10 rounded-xl shadow-xl overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <span className="material-symbols-outlined animate-spin text-primary text-[36px]">progress_activity</span>
@@ -325,13 +325,13 @@ export default function UsersPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-surface-container border-b border-outline-variant">
+                <tr className="bg-white/30 dark:bg-black/30 border-b border-outline-variant/50">
                   {["Nama", "Username", "Role", "Status", "Bergabung", "Aksi"].map((h) => (
                     <th key={h} className={`py-3 px-4 font-inter text-xs font-bold text-on-surface-variant uppercase tracking-wider ${h === "Aksi" ? "text-center" : ""}`}>{h}</th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="font-inter text-sm divide-y divide-outline-variant">
+              <tbody className="font-inter text-sm divide-y divide-outline-variant/50">
                 {users.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="py-16 text-center text-on-surface-variant">
@@ -340,7 +340,7 @@ export default function UsersPage() {
                     </td>
                   </tr>
                 ) : users.map((user) => (
-                  <tr key={user.id} className={`hover:bg-surface-container-low transition-colors group ${user.status === "nonaktif" ? "opacity-55" : ""}`}>
+                  <tr key={user.id} className={`hover:bg-white/30 dark:hover:bg-white/5 transition-colors group ${user.status === "nonaktif" ? "opacity-55" : ""}`}>
                     <td className="py-3.5 px-4 font-semibold text-on-surface">{user.full_name}</td>
                     <td className="py-3.5 px-4 text-on-surface-variant">{user.username}</td>
                     <td className="py-3.5 px-4">
