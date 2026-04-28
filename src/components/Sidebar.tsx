@@ -65,9 +65,11 @@ export default function Sidebar() {
 
   const RoleBadge = (
     <div className="px-6 py-4 border-t border-outline-variant">
-      <div className="flex items-center gap-2">
-        <span className="material-symbols-outlined text-on-surface-variant text-[18px]">shield_person</span>
-        <span className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+      <div className="flex items-center gap-3">
+        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 ring-1 ring-inset ring-indigo-500/20">
+          <span className="material-symbols-outlined icon-fill text-[18px]">shield_person</span>
+        </div>
+        <span className="text-xs font-extrabold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">
           {roleLabel}
         </span>
       </div>

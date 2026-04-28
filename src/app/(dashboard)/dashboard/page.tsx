@@ -300,9 +300,13 @@ export default function DashboardPage() {
             <tbody className="font-inter text-sm text-on-surface divide-y divide-outline-variant">
               {recentItems.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-12 px-6 text-center">
-                    <span className="material-symbols-outlined text-[40px] text-outline block mb-2">inbox</span>
-                    <p className="text-on-surface-variant">Belum ada data surat.</p>
+                  <td colSpan={5} className="py-16 px-6 text-center">
+                    <div className="flex flex-col items-center justify-center">
+                      <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-3 ring-1 ring-inset ring-slate-500/10 shadow-sm">
+                        <span className="material-symbols-outlined icon-fill text-[28px] text-slate-400">inbox</span>
+                      </div>
+                      <p className="font-inter text-sm font-medium text-slate-500">Belum ada aktivitas terkini.</p>
+                    </div>
                   </td>
                 </tr>
               ) : (

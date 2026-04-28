@@ -396,9 +396,13 @@ export default function SuratMasukPage() {
               <tbody className="divide-y divide-outline-variant font-inter text-sm">
                 {suratList.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="py-16 text-center text-on-surface-variant">
-                      <span className="material-symbols-outlined text-[48px] text-outline block mb-2">inbox</span>
-                      Belum ada surat masuk.
+                    <td colSpan={6} className="py-20 text-center">
+                      <div className="flex flex-col items-center justify-center">
+                        <div className="w-16 h-16 rounded-2xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center mb-4 ring-1 ring-inset ring-blue-500/10 shadow-sm">
+                          <span className="material-symbols-outlined icon-fill text-[32px] text-blue-500">inbox</span>
+                        </div>
+                        <p className="font-inter text-sm font-medium text-slate-500">Belum ada surat masuk.</p>
+                      </div>
                     </td>
                   </tr>
                 ) : suratList.map((s) => (
@@ -413,19 +417,19 @@ export default function SuratMasukPage() {
                     <td className="py-3.5 px-4">
                       <div className="flex items-center justify-center gap-1">
                         <button onClick={() => openView(s)} title="Lihat Detail"
-                          className="p-1.5 rounded-md text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors">
-                          <span className="material-symbols-outlined text-[19px]">visibility</span>
+                          className="group p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-all">
+                          <span className="material-symbols-outlined text-[19px] group-hover:icon-fill">visibility</span>
                         </button>
                         {userRole !== "pimpinan" && (
                           <button onClick={() => openEdit(s)} title="Edit"
-                            className="p-1.5 rounded-md text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors">
-                            <span className="material-symbols-outlined text-[19px]">edit</span>
+                            className="group p-1.5 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-all">
+                            <span className="material-symbols-outlined text-[19px] group-hover:icon-fill">edit</span>
                           </button>
                         )}
                         {userRole === "admin" && (
                           <button onClick={() => setConfirmDeleteId(s.id)} title="Hapus"
-                            className="p-1.5 rounded-md text-on-surface-variant hover:text-error hover:bg-error-container/40 transition-colors">
-                            <span className="material-symbols-outlined text-[19px]">delete</span>
+                            className="group p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all">
+                            <span className="material-symbols-outlined text-[19px] group-hover:icon-fill">delete</span>
                           </button>
                         )}
                       </div>

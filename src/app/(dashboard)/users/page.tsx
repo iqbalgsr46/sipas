@@ -334,9 +334,13 @@ export default function UsersPage() {
               <tbody className="font-inter text-sm divide-y divide-outline-variant">
                 {users.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="py-16 text-center text-on-surface-variant">
-                      <span className="material-symbols-outlined text-[48px] text-outline block mb-2">group</span>
-                      Tidak ada pengguna ditemukan.
+                    <td colSpan={6} className="py-20 text-center">
+                      <div className="flex flex-col items-center justify-center">
+                        <div className="w-16 h-16 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center mb-4 ring-1 ring-inset ring-emerald-500/10 shadow-sm">
+                          <span className="material-symbols-outlined icon-fill text-[32px] text-emerald-500">group</span>
+                        </div>
+                        <p className="font-inter text-sm font-medium text-slate-500">Tidak ada pengguna ditemukan.</p>
+                      </div>
                     </td>
                   </tr>
                 ) : users.map((user) => (
@@ -355,8 +359,8 @@ export default function UsersPage() {
                     <td className="py-3.5 px-4">
                       <div className="flex items-center justify-center gap-1">
                         <button onClick={() => openEdit(user)} title="Edit"
-                          className="p-1.5 rounded-md text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors">
-                          <span className="material-symbols-outlined text-[19px]">edit</span>
+                          className="group p-1.5 rounded-lg text-on-surface-variant hover:text-amber-600 hover:bg-amber-500/10 transition-all">
+                          <span className="material-symbols-outlined text-[19px] group-hover:icon-fill">edit</span>
                         </button>
                         <button onClick={() => setConfirmDeleteId(user.id)} title="Hapus"
                           className="p-1.5 rounded-md text-on-surface-variant hover:text-error hover:bg-error-container/40 transition-colors">

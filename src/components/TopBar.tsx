@@ -341,9 +341,9 @@ export default function TopBar() {
         <div ref={notifRef} className="relative">
           <button
             onClick={() => setShowNotifications(!showNotifications)}
-            className="p-2.5 text-on-surface-variant hover:text-primary transition-all rounded-full hover:bg-surface-container-low relative"
+            className="p-2.5 text-on-surface-variant hover:text-primary transition-all rounded-full hover:bg-primary-container/30 relative group"
           >
-            <span className="material-symbols-outlined text-[24px]">notifications</span>
+            <span className="material-symbols-outlined text-[24px] group-hover:icon-fill transition-all">notifications</span>
             {unreadCount > 0 && (
               <span className="absolute top-1 right-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-error text-[10px] font-bold text-on-error px-1 border-2 border-surface-container-lowest">
                 {unreadCount > 9 ? "9+" : unreadCount}
@@ -366,9 +366,11 @@ export default function TopBar() {
               </div>
               <div className="max-h-80 overflow-y-auto custom-scrollbar">
                 {notifications.length === 0 ? (
-                  <div className="py-10 text-center">
-                    <span className="material-symbols-outlined text-outline text-[40px] block mb-2">notifications_off</span>
-                    <p className="text-sm text-on-surface-variant font-inter">Belum ada notifikasi</p>
+                  <div className="py-12 text-center flex flex-col items-center">
+                    <div className="w-14 h-14 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-3 ring-1 ring-inset ring-slate-500/10">
+                      <span className="material-symbols-outlined icon-fill text-[28px] text-slate-400">notifications_off</span>
+                    </div>
+                    <p className="text-sm font-inter text-slate-500 font-medium">Belum ada notifikasi.</p>
                   </div>
                 ) : (
                   notifications.map((notif) => {
