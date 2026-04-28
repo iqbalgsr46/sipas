@@ -145,30 +145,34 @@ export default function DashboardPage() {
     {
       label: "Surat Masuk",
       value: stats.totalMasuk,
-      icon: "mail",
-      iconBg: "bg-emerald-50 dark:bg-emerald-500/10 ring-emerald-500/20 text-emerald-600 dark:text-emerald-400",
+      icon: "mail", // icon amplop
+      color: "bg-[#dcfce7]", // hijau pastel cerah
+      iconColor: "text-[#10b981]", // hijau solid
       href: "/surat-masuk",
     },
     {
       label: "Surat Keluar",
       value: stats.totalKeluar,
-      icon: "send",
-      iconBg: "bg-blue-50 dark:bg-blue-500/10 ring-blue-500/20 text-blue-600 dark:text-blue-400",
+      icon: "send", // icon pesawat kertas (kirim)
+      color: "bg-[#e0f2fe]", // biru pastel cerah
+      iconColor: "text-[#3b82f6]", // biru solid
       href: "/surat-keluar",
     },
     {
       label: "Menunggu Approval",
       value: stats.pendingApproval,
-      icon: "pending_actions",
-      iconBg: "bg-purple-50 dark:bg-purple-500/10 ring-purple-500/20 text-purple-600 dark:text-purple-400",
+      icon: "pending_actions", // icon clipboard pending
+      color: "bg-[#f3e8ff]", // ungu pastel cerah
+      iconColor: "text-[#8b5cf6]", // ungu solid
       href: "/approval",
       highlight: stats.pendingApproval > 0,
     },
     {
       label: "Total Pengguna",
       value: stats.totalUsers,
-      icon: "group",
-      iconBg: "bg-amber-50 dark:bg-amber-500/10 ring-amber-500/20 text-amber-600 dark:text-amber-400",
+      icon: "group", // icon users
+      color: "bg-[#ffedd5]", // orange pastel cerah
+      iconColor: "text-[#f97316]", // orange solid
       href: "/users",
     }
   ];
@@ -176,10 +180,10 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-col gap-8">
       {/* Hero Greeting */}
-      <section className="relative bg-gradient-to-br from-primary via-primary-container to-primary rounded-2xl p-8 shadow-md overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute right-0 top-0 w-80 h-80 bg-surface-container-lowest rounded-full blur-3xl -translate-y-1/3 translate-x-1/4" />
-          <div className="absolute left-1/4 bottom-0 w-48 h-48 bg-surface-container-lowest rounded-full blur-2xl translate-y-1/2" />
+      <section className="relative bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 rounded-2xl p-8 shadow-lg overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute right-0 top-0 w-80 h-80 bg-white/20 rounded-full blur-3xl -translate-y-1/3 translate-x-1/4" />
+          <div className="absolute left-1/4 bottom-0 w-48 h-48 bg-white/20 rounded-full blur-2xl translate-y-1/2" />
         </div>
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
@@ -236,20 +240,23 @@ export default function DashboardPage() {
           <Link
             key={card.label}
             href={card.href}
-            className={`rounded-2xl p-6 bg-surface-container-lowest border border-outline-variant shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 group cursor-pointer flex items-center justify-between ${
-              card.highlight ? "ring-2 ring-purple-500/50" : ""
+            className={`rounded-2xl p-6 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 group cursor-pointer flex items-center justify-between ${card.color} ${
+              card.highlight ? "ring-2 ring-purple-400 ring-offset-2 ring-offset-surface" : ""
             }`}
           >
             <div className="flex flex-col justify-center">
-              <span className="font-public-sans text-[40px] leading-none font-extrabold tracking-tight text-on-surface mb-2 group-hover:scale-105 origin-left transition-transform">
+              <span className="font-public-sans text-[40px] leading-none font-extrabold tracking-tight text-slate-900 mb-2">
                 {card.value}
               </span>
-              <span className="font-inter text-sm font-semibold text-on-surface-variant uppercase tracking-wider">
+              <span className="font-inter text-sm font-medium text-slate-700">
                 {card.label}
               </span>
             </div>
-            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ring-1 ring-inset shadow-[0_1px_2px_0_rgba(0,0,0,0.03)] shrink-0 ${card.iconBg}`}>
-              <span className="material-symbols-outlined icon-fill text-[30px] group-hover:scale-110 transition-transform">
+            <div className="flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <span 
+                className={`material-symbols-outlined icon-fill ${card.iconColor}`}
+                style={{ fontSize: "45px", lineHeight: 1 }}
+              >
                 {card.icon}
               </span>
             </div>
