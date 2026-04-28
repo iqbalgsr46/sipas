@@ -86,14 +86,23 @@ export default function LoginPage() {
       <div className="relative z-10 w-full max-w-[420px] bg-white/5 dark:bg-black/20 backdrop-blur-2xl rounded-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] p-8 border border-white/10 flex flex-col items-center">
         {/* Brand / Header */}
         <div className="flex flex-col items-center mb-8 text-center">
-          <div className="w-16 h-16 bg-primary-container rounded-full flex items-center justify-center mb-4 text-on-primary-container">
-            <span className="material-symbols-outlined text-[32px]">mail</span>
+          {/* Logo Lambang Kabupaten Karawang */}
+          <div className="w-20 h-20 mb-4 drop-shadow-lg">
+            <img
+              src="https://upload.wikimedia.org/wikipedia/commons/9/9d/LAMBANG_KABUPATEN_KARAWANG.svg"
+              alt="Lambang Kabupaten Karawang"
+              className="w-full h-full object-contain"
+              loading="eager"
+            />
           </div>
           <h1 className="font-public-sans text-4xl font-bold text-primary mb-1 tracking-tight">
             SIPAS
           </h1>
-          <p className="font-inter text-base text-on-surface-variant">
+          <p className="font-inter text-sm text-on-surface-variant">
             Sistem Informasi Persuratan
+          </p>
+          <p className="font-inter text-xs text-outline mt-0.5">
+            Kabupaten Karawang
           </p>
         </div>
 
