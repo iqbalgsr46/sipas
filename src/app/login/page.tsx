@@ -102,10 +102,10 @@ export default function LoginPage() {
       <NeonGradientCard 
         className="w-full max-w-[420px]"
         borderSize={2}
-        borderRadius={20}
+        borderRadius={12}
         neonColors={{ firstColor: "#9333ea", secondColor: "#3b82f6" }}
       >
-        <div className="relative z-10 w-full h-full bg-white/10 dark:bg-black/30 backdrop-blur-3xl rounded-[18px] shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] p-8 border border-white/20 flex flex-col items-center">
+        <div className="relative z-10 w-full h-full bg-white/5 dark:bg-black/20 backdrop-blur-2xl rounded-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] p-8 border border-white/10 flex flex-col items-center">
         {/* Brand / Header */}
         <div className="flex flex-col items-center mb-8 text-center">
           {/* Logo Lambang Kabupaten Karawang */}
