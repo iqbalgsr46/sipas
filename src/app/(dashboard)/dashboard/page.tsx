@@ -138,6 +138,8 @@ export default function DashboardPage() {
         <p className="font-inter text-sm text-on-surface-variant">Memuat dashboard...</p>
       </div>
     );
+  }
+
   const statsCards = [
     {
       label: "Surat Masuk",
