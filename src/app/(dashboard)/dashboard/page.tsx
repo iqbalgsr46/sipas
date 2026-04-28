@@ -144,7 +144,7 @@ export default function DashboardPage() {
     {
       label: "Surat Masuk",
       value: stats.totalMasuk,
-      icon: "inbox", // icon kotak masuk
+      icon: "mail", // icon amplop
       color: "bg-[#dcfce7]", // hijau pastel cerah
       iconColor: "text-[#10b981]", // hijau solid
       href: "/surat-masuk",
