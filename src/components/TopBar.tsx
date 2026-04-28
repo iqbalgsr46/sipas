@@ -14,7 +14,7 @@ interface SearchResult {
   tipe: "masuk" | "keluar";
 }
 
-export default function TopBar() {
+export default function TopBar({ onHamburgerClick, isSidebarCollapsed }: { onHamburgerClick?: () => void; isSidebarCollapsed?: boolean }) {
   const router = useRouter();
   const { theme, setTheme, systemTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -213,8 +213,19 @@ export default function TopBar() {
 
   return (
     <header className="sticky top-0 right-0 z-30 flex justify-between items-center pl-14 md:px-10 py-3 bg-surface-container-lowest/80 backdrop-blur-md border-b border-outline-variant shadow-sm">
-      {/* Left: Search */}
-      <div className="flex items-center gap-4 flex-1">
+      {/* Left: Search and Hamburger */}
+      <div className="flex items-center gap-2 md:gap-4 flex-1">
+        {onHamburgerClick && (
+          <button
+            onClick={onHamburgerClick}
+            className="hidden md:flex p-2 text-on-surface-variant hover:text-primary transition-all rounded-full hover:bg-surface-container-low"
+            aria-label="Toggle Sidebar"
+          >
+            <span className="material-symbols-outlined text-[24px]">
+              {isSidebarCollapsed ? "menu" : "menu_open"}
+            </span>
+          </button>
+        )}
         <div ref={searchRef} className="relative w-80 hidden md:block">
           <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">
             search
