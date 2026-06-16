@@ -136,51 +136,87 @@ async function runAI(
         return result.text;
       }
 
-      // Jika tidak ada text tapi ada toolResults, format hasilnya
-      if (result.toolResults && result.toolResults.length > 0) {
-        console.log(`[TG Bot] ${modelName} executed tools but no text, formatting manually...`);
-        const lastResult = result.toolResults[result.toolResults.length - 1] as any;
-        
-        if (lastResult.result?.error) {
-          return `❌ ${lastResult.result.error}`;
-        }
-        
-        // Jika tool berhasil tapi AI tidak generate response, buat response sederhana
-        if (lastResult.result) {
-          const toolData = lastResult.result;
-          console.log(`[TG Bot] Formatting tool result for: ${lastResult.toolName}`);
-          
-          // Format berdasarkan tool yang dipanggil
-          if (lastResult.toolName === 'statistik_surat') {
-            const stats = `📊 Statistik Surat\n\n` +
-              `📥 Surat Masuk: ${toolData.surat_masuk?.total || 0}\n` +
-              `📤 Surat Keluar: ${toolData.surat_keluar?.total || 0}\n` +
-              `⏳ Menunggu Approval: ${toolData.surat_keluar?.menunggu_approval || 0}`;
-            console.log(`[TG Bot] Generated stats response:`, stats);
-            return stats;
-          }
-          
-          if (lastResult.toolName === 'list_surat_masuk') {
-            if (Array.isArray(toolData) && toolData.length > 0) {
-              let response = `📥 Surat Masuk (${toolData.length})\n\n`;
-              toolData.slice(0, 5).forEach((surat: any, idx: number) => {
-                response += `${idx + 1}. ${surat.nomor_surat}\n`;
-                response += `   Pengirim: ${surat.pengirim}\n`;
-                response += `   Perihal: ${surat.perihal}\n\n`;
-              });
-              return response;
-            } else {
-              return "📥 Tidak ada surat masuk ditemukan.";
-            }
-          }
-          
-          // Default fallback dengan data preview
-          console.log(`[TG Bot] Using default fallback for: ${lastResult.toolName}`);
-          return `✅ Data berhasil diambil (${lastResult.toolName}).\n\nHasil: ${JSON.stringify(toolData).substring(0, 200)}...`;
-        }
+      // Jika tidak ada text, cek apakah ada tool results
+      console.log(`[TG Bot] ${modelName} no text response, checking tool results...`);
+      
+      if (!result.toolResults || result.toolResults.length === 0) {
+        console.warn(`[TG Bot] ${modelName} no text and no tool results`);
+        return null;
       }
 
-      console.warn(`[TG Bot] ${modelName} returned no text and no valid tool results`);
+      // Ada tool results, format hasilnya
+      console.log(`[TG Bot] ${modelName} executed ${result.toolResults.length} tools, formatting manually...`);
+      const lastResult = result.toolResults[result.toolResults.length - 1] as any;
+      
+      console.log(`[TG Bot] Last tool:`, {
+        toolName: lastResult.toolName,
+        hasResult: !!lastResult.result,
+        resultType: typeof lastResult.result,
+        resultKeys: lastResult.result && typeof lastResult.result === 'object' 
+          ? Object.keys(lastResult.result) 
+          : []
+      });
+      
+      // Cek error dari tool
+      if (lastResult.result?.error) {
+        console.log(`[TG Bot] Tool returned error:`, lastResult.result.error);
+        return `❌ ${lastResult.result.error}`;
+      }
+      
+      // Jika tool berhasil, format berdasarkan tool name
+      if (lastResult.result) {
+        const toolData = lastResult.result;
+        console.log(`[TG Bot] Formatting result for tool: ${lastResult.toolName}`);
+        
+        // Format berdasarkan tool yang dipanggil
+        if (lastResult.toolName === 'statistik_surat') {
+          const stats = `📊 Statistik Surat\n\n` +
+            `📥 Surat Masuk: ${toolData.surat_masuk?.total || 0}\n` +
+            `📤 Surat Keluar: ${toolData.surat_keluar?.total || 0}\n` +
+            `⏳ Menunggu Approval: ${toolData.surat_keluar?.menunggu_approval || 0}`;
+          console.log(`[TG Bot] Generated stats response`);
+          return stats;
+        }
+        
+        if (lastResult.toolName === 'list_surat_masuk') {
+          console.log(`[TG Bot] Formatting list_surat_masuk, data:`, JSON.stringify(toolData).substring(0, 200));
+          if (Array.isArray(toolData) && toolData.length > 0) {
+            let response = `📥 Surat Masuk (${toolData.length})\n\n`;
+            toolData.slice(0, 5).forEach((surat: any, idx: number) => {
+              response += `${idx + 1}. ${surat.nomor_surat}\n`;
+              response += `   Pengirim: ${surat.pengirim}\n`;
+              response += `   Perihal: ${surat.perihal}\n\n`;
+            });
+            return response;
+          } else {
+            return "📥 Tidak ada surat masuk ditemukan.";
+          }
+        }
+        
+        if (lastResult.toolName === 'list_surat_keluar') {
+          if (Array.isArray(toolData) && toolData.length > 0) {
+            let response = `📤 Surat Keluar (${toolData.length})\n\n`;
+            toolData.slice(0, 5).forEach((surat: any, idx: number) => {
+              response += `${idx + 1}. ${surat.nomor_surat}\n`;
+              response += `   Tujuan: ${surat.tujuan}\n`;
+              response += `   Perihal: ${surat.perihal}\n`;
+              response += `   Status: ${surat.status}\n\n`;
+            });
+            return response;
+          } else {
+            return "📤 Tidak ada surat keluar ditemukan.";
+          }
+        }
+        
+        // Default fallback dengan preview data
+        console.log(`[TG Bot] Using generic fallback for: ${lastResult.toolName}`);
+        const preview = typeof toolData === 'object' 
+          ? JSON.stringify(toolData, null, 2).substring(0, 300)
+          : String(toolData).substring(0, 300);
+        return `✅ Data berhasil diambil\n\nTool: ${lastResult.toolName}\n\nHasil:\n${preview}${preview.length >= 300 ? '...' : ''}`;
+      }
+
+      console.warn(`[TG Bot] ${modelName} tool result exists but empty`);
       return null;
       
     } catch (callError: any) {
