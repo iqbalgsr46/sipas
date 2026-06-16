@@ -19,12 +19,19 @@ const openrouter = createOpenAI({
   },
 });
 
-// Kirim pesan ke Telegram
-async function sendMessage(chatId: number, text: string, parseMode = "Markdown") {
+// Escape markdown characters untuk Telegram
+function escapeMarkdown(text: string): string {
+  // Karakter yang perlu di-escape untuk MarkdownV2
+  return text.replace(/([_*\[\]()~`>#+\-=|{}.!\\])/g, '\\$1');
+}
+
+// Kirim pesan ke Telegram dengan fallback
+async function sendMessage(chatId: number, text: string, parseMode: "Markdown" | "HTML" | null = "Markdown") {
   console.log("[TG Bot] sendMessage called with chatId:", chatId);
   console.log("[TG Bot] TELEGRAM_API:", TELEGRAM_API);
   
-  const response = await fetch(`${TELEGRAM_API}/sendMessage`, {
+  // Coba dengan parse mode yang diminta
+  let response = await fetch(`${TELEGRAM_API}/sendMessage`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -35,8 +42,26 @@ async function sendMessage(chatId: number, text: string, parseMode = "Markdown")
     }),
   });
   
-  const result = await response.json();
+  let result = await response.json();
   console.log("[TG Bot] Telegram API response:", JSON.stringify(result));
+  
+  // Jika gagal karena markdown error, coba kirim ulang tanpa formatting
+  if (!result.ok && result.description?.includes("parse entities")) {
+    console.warn("[TG Bot] Markdown parse error, retrying without formatting");
+    
+    response = await fetch(`${TELEGRAM_API}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text, // Kirim plain text
+        disable_web_page_preview: true,
+      }),
+    });
+    
+    result = await response.json();
+    console.log("[TG Bot] Retry response:", JSON.stringify(result));
+  }
   
   if (!result.ok) {
     console.error("[TG Bot] Telegram API error:", result);
@@ -193,17 +218,27 @@ export async function POST(req: Request) {
     await sendTyping(chatId);
 
     // ── Jalankan AI ───────────────────────────────────────────────────────────
-    const tools = createSipasTools(sipasUser.id, sipasUser.role, supabase);
-    const systemPrompt = buildSystemPrompt(sipasUser) +
-      `\n\n## Konteks Platform\nKamu sedang membalas pesan melalui *Telegram Bot*. Gunakan format Markdown yang kompatibel dengan Telegram (bold: *teks*, italic: _teks_, code: \`kode\`). Jangan gunakan heading markdown (##). Respons harus ringkas dan padat karena tampilan Telegram terbatas.`;
+    try {
+      const tools = createSipasTools(sipasUser.id, sipasUser.role, supabase);
+      const systemPrompt = buildSystemPrompt(sipasUser) +
+        `\n\n## Konteks Platform\nKamu sedang membalas pesan melalui *Telegram Bot*. Gunakan format Markdown yang kompatibel dengan Telegram (bold: *teks*, italic: _teks_, code: \`kode\`). Jangan gunakan heading markdown (##). Respons harus ringkas dan padat karena tampilan Telegram terbatas.`;
 
-    const aiResponse = await runAI(
-      systemPrompt,
-      [{ role: "user", content: text }],
-      tools
-    );
+      const aiResponse = await runAI(
+        systemPrompt,
+        [{ role: "user", content: text }],
+        tools
+      );
 
-    await sendMessage(chatId, aiResponse);
+      await sendMessage(chatId, aiResponse);
+    } catch (aiError: any) {
+      console.error("[TG Bot] AI Error:", aiError?.message);
+      await sendMessage(
+        chatId,
+        `⚠️ Maaf, terjadi kesalahan saat memproses permintaan Anda.\n\nSilakan coba lagi atau hubungi admin jika masalah berlanjut.`,
+        null
+      );
+    }
+    
     return new Response("ok");
 
   } catch (err: any) {
