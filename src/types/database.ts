@@ -21,6 +21,7 @@ export interface User {
   role: "admin" | "staf" | "pimpinan";
   status: "aktif" | "nonaktif";
   avatar_url?: string | null;
+  telegram_id?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -90,6 +91,7 @@ export type UserInsert = {
   email: string;
   role?: "admin" | "staf" | "pimpinan";
   status?: "aktif" | "nonaktif";
+  telegram_id?: string | null;
 };
 
 export type SuratMasukInsert = {

@@ -31,6 +31,7 @@ export default function UsersPage() {
     password: "",
     role: "staf" as User["role"],
     status: "aktif" as User["status"],
+    telegram_id: "",
   });
 
   const fetchUsers = useCallback(async () => {
@@ -80,6 +81,7 @@ export default function UsersPage() {
   const EMPTY_FORM = {
     full_name: "", username: "", email: "", password: "",
     role: "staf" as User["role"], status: "aktif" as User["status"],
+    telegram_id: "",
   };
 
   function openCreate() {
@@ -89,7 +91,15 @@ export default function UsersPage() {
   }
 
   function openEdit(user: User) {
-    setForm({ full_name: user.full_name, username: user.username, email: user.email, password: "", role: user.role, status: user.status });
+    setForm({ 
+      full_name: user.full_name, 
+      username: user.username, 
+      email: user.email, 
+      password: "", 
+      role: user.role, 
+      status: user.status,
+      telegram_id: user.telegram_id || "",
+    });
     setEditingId(user.id);
     setModal("edit");
   }
@@ -147,6 +157,7 @@ export default function UsersPage() {
         username: form.username.trim(),
         role: form.role,
         status: form.status,
+        telegram_id: form.telegram_id.trim() || null,
       } as any)
       .eq("id", editingId);
 
@@ -250,6 +261,23 @@ export default function UsersPage() {
         </div>
       </div>
 
+      <div>
+        <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1.5">
+          Telegram ID <span className="text-gray-500 normal-case tracking-normal">(Opsional)</span>
+        </label>
+        <input 
+          className={inputCls} 
+          type="text" 
+          placeholder="Contoh: 123456789" 
+          value={form.telegram_id} 
+          onChange={(e) => setForm({ ...form, telegram_id: e.target.value })} 
+        />
+        <p className="text-[11px] font-medium text-gray-500 dark:text-gray-400 mt-1.5 flex items-start gap-1.5">
+          <span className="material-symbols-outlined text-[14px] shrink-0 mt-0.5">info</span>
+          <span>User bisa chat bot Telegram dan ketik /start untuk mendapatkan ID mereka. Kosongkan jika tidak menggunakan bot.</span>
+        </p>
+      </div>
+
       <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-800 mt-6 bg-white dark:bg-gray-900 sticky bottom-0 pb-2">
         <button type="button" onClick={closeModal}
           className="flex-1 py-2.5 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-medium hover:bg-gray-50 dark:hover:bg-white/[0.03] transition-colors">
@@ -318,7 +346,7 @@ export default function UsersPage() {
             <table className="w-full text-left border-collapse text-sm">
               <thead>
                 <tr className="border-b border-gray-200 dark:border-gray-800">
-                  {["Nama", "Username", "Role", "Status", "Bergabung", "Aksi"].map((h) => (
+                  {["Nama", "Username", "Role", "Telegram ID", "Status", "Bergabung", "Aksi"].map((h) => (
                     <th key={h} className={`py-4 px-6 font-medium text-gray-800 dark:text-white/90`}>
                       <div className={`flex items-center justify-between`}>
                         <span>{h}</span>
@@ -331,7 +359,7 @@ export default function UsersPage() {
               <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                 {users.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="py-20 text-center">
+                    <td colSpan={7} className="py-20 text-center">
                       <div className="flex flex-col items-center justify-center">
                         <div className="w-16 h-16 rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center mb-4 ring-1 ring-inset ring-emerald-500/20">
                           <span className="material-symbols-outlined icon-fill text-[32px] text-emerald-500">group</span>
@@ -348,6 +376,16 @@ export default function UsersPage() {
                       <span className={`inline-flex items-center px-3 py-1 rounded-md text-[11px] font-bold tracking-widest ${roleBadgeCls(user.role)}`}>
                         {user.role.toUpperCase()}
                       </span>
+                    </td>
+                    <td className="py-4 px-6">
+                      {user.telegram_id ? (
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-mono text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">{user.telegram_id}</span>
+                          <div className="w-2 h-2 rounded-full bg-green-500" title="Terhubung ke Telegram"></div>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-gray-400 italic">Belum terhubung</span>
+                      )}
                     </td>
                     <td className="py-4 px-6"><StatusBadge status={user.status} /></td>
                     <td className="py-4 px-6 text-gray-500 dark:text-gray-400 whitespace-nowrap">
