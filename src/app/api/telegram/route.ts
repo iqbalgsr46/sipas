@@ -105,14 +105,43 @@ async function runAI(
       maxSteps: 5,
     } as any);
 
-    let text = result.text;
-    if (!text && result.toolResults?.length > 0) {
-      const last = result.toolResults[result.toolResults.length - 1] as any;
-      text = last.result?.error
-        ? `❌ ${last.result.error}`
-        : `✅ Tindakan berhasil! (${last.toolName})`;
+    console.log("[TG Bot] AI result:", JSON.stringify({
+      text: result.text,
+      toolCallsCount: result.toolCalls?.length || 0,
+      toolResultsCount: result.toolResults?.length || 0
+    }));
+
+    // Prioritaskan text response dari AI
+    if (result.text && result.text.trim()) {
+      return result.text;
     }
-    return text || null;
+
+    // Jika tidak ada text tapi ada toolResults, format hasilnya
+    if (result.toolResults && result.toolResults.length > 0) {
+      const lastResult = result.toolResults[result.toolResults.length - 1] as any;
+      
+      if (lastResult.result?.error) {
+        return `❌ ${lastResult.result.error}`;
+      }
+      
+      // Jika tool berhasil tapi AI tidak generate response, buat response sederhana
+      if (lastResult.result) {
+        const toolData = lastResult.result;
+        
+        // Format berdasarkan tool yang dipanggil
+        if (lastResult.toolName === 'statistik_surat') {
+          return `📊 Statistik Surat:\n\n` +
+            `📥 Surat Masuk: ${toolData.surat_masuk?.total || 0}\n` +
+            `📤 Surat Keluar: ${toolData.surat_keluar?.total || 0}\n` +
+            `⏳ Menunggu Approval: ${toolData.surat_keluar?.menunggu_approval || 0}`;
+        }
+        
+        // Default fallback
+        return `✅ Tindakan berhasil! (${lastResult.toolName})`;
+      }
+    }
+
+    return null;
   };
 
   // Coba Gemini dulu
@@ -221,7 +250,7 @@ export async function POST(req: Request) {
     try {
       const tools = createSipasTools(sipasUser.id, sipasUser.role, supabase);
       const systemPrompt = buildSystemPrompt(sipasUser) +
-        `\n\n## Konteks Platform\nKamu sedang membalas pesan melalui *Telegram Bot*. Gunakan format Markdown yang kompatibel dengan Telegram (bold: *teks*, italic: _teks_, code: \`kode\`). Jangan gunakan heading markdown (##). Respons harus ringkas dan padat karena tampilan Telegram terbatas.`;
+        `\n\n## Konteks Platform\nKamu sedang membalas pesan melalui Telegram Bot. PENTING: Setelah memanggil tool, kamu HARUS memberikan respons text yang menjelaskan hasil tool tersebut kepada user. Jangan hanya memanggil tool tanpa memberikan penjelasan. Gunakan format yang ringkas dan jelas. Jangan gunakan markdown heading (##). Kamu bisa gunakan emoji untuk membuat respons lebih menarik.`;
 
       const aiResponse = await runAI(
         systemPrompt,
