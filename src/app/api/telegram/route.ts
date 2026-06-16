@@ -116,18 +116,26 @@ async function runAI(
         steps: result.steps?.length || 0
       }));
 
-      // Log tool results untuk debugging
+      // Log semua tool results untuk debugging
       if (result.toolResults && result.toolResults.length > 0) {
+        console.log(`[TG Bot] Total tool results: ${result.toolResults.length}`);
         result.toolResults.forEach((tr: any, idx: number) => {
           console.log(`[TG Bot] Tool result ${idx}:`, {
             toolName: tr.toolName,
             hasResult: !!tr.result,
+            resultIsNull: tr.result === null,
+            resultIsUndefined: tr.result === undefined,
+            resultType: typeof tr.result,
             hasError: !!tr.result?.error,
-            resultPreview: typeof tr.result === 'object' 
-              ? JSON.stringify(tr.result).substring(0, 200)
-              : String(tr.result).substring(0, 200)
+            resultPreview: tr.result 
+              ? (typeof tr.result === 'object' 
+                ? JSON.stringify(tr.result).substring(0, 300)
+                : String(tr.result).substring(0, 300))
+              : "NO RESULT"
           });
         });
+      } else {
+        console.log(`[TG Bot] No tool results in response`);
       }
 
       // Prioritaskan text response dari AI
@@ -138,6 +146,8 @@ async function runAI(
 
       // Jika tidak ada text, cek apakah ada tool results
       console.log(`[TG Bot] ${modelName} no text response, checking tool results...`);
+      console.log(`[TG Bot] Tool results exists:`, !!result.toolResults);
+      console.log(`[TG Bot] Tool results length:`, result.toolResults?.length || 0);
       
       if (!result.toolResults || result.toolResults.length === 0) {
         console.warn(`[TG Bot] ${modelName} no text and no tool results`);
@@ -148,13 +158,15 @@ async function runAI(
       console.log(`[TG Bot] ${modelName} executed ${result.toolResults.length} tools, formatting manually...`);
       const lastResult = result.toolResults[result.toolResults.length - 1] as any;
       
-      console.log(`[TG Bot] Last tool:`, {
+      console.log(`[TG Bot] Last tool details:`, {
         toolName: lastResult.toolName,
         hasResult: !!lastResult.result,
         resultType: typeof lastResult.result,
+        resultIsNull: lastResult.result === null,
         resultKeys: lastResult.result && typeof lastResult.result === 'object' 
           ? Object.keys(lastResult.result) 
-          : []
+          : [],
+        fullResult: JSON.stringify(lastResult.result).substring(0, 500)
       });
       
       // Cek error dari tool
