@@ -166,8 +166,16 @@ async function runAI(
         resultKeys: lastResult.result && typeof lastResult.result === 'object' 
           ? Object.keys(lastResult.result) 
           : [],
-        fullResult: JSON.stringify(lastResult.result).substring(0, 500)
+        fullResult: lastResult.result 
+          ? JSON.stringify(lastResult.result).substring(0, 500)
+          : "UNDEFINED OR NULL"
       });
+      
+      // Cek apakah result undefined atau null
+      if (!lastResult.result && lastResult.result !== 0 && lastResult.result !== false) {
+        console.error(`[TG Bot] Tool ${lastResult.toolName} returned undefined/null result`);
+        return `⚠️ Tool ${lastResult.toolName} tidak mengembalikan data. Kemungkinan ada masalah dengan query database atau permission.`;
+      }
       
       // Cek error dari tool
       if (lastResult.result?.error) {
@@ -360,10 +368,11 @@ export async function POST(req: Request) {
       await sendMessage(chatId, aiResponse);
     } catch (aiError: any) {
       console.error("[TG Bot] AI Error:", aiError?.message);
+      console.error("[TG Bot] AI Error stack:", aiError?.stack);
       await sendMessage(
         chatId,
         `⚠️ Maaf, terjadi kesalahan saat memproses permintaan Anda.\n\nSilakan coba lagi atau hubungi admin jika masalah berlanjut.`,
-        null
+        null // No parse mode untuk error message
       );
     }
     

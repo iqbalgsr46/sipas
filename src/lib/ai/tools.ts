@@ -88,17 +88,41 @@ export const createSipasTools = (userId: string, userRole: string, supabase: any
         dummy: z.string().optional().describe("Tidak digunakan"),
       }),
       execute: async () => {
-        const supabase = await getDb();
-        const [sm, sk, pending] = await Promise.all([
-          supabase.from("surat_masuk").select("id", { count: "exact" }),
-          supabase.from("surat_keluar").select("id", { count: "exact" }),
-          supabase.from("surat_keluar").select("id", { count: "exact" }).eq("status", "diajukan"),
-        ]);
-        return { 
-          total_surat_masuk: sm.count || 0, 
-          total_surat_keluar: sk.count || 0, 
-          menunggu_approval: pending.count || 0 
-        };
+        try {
+          const supabase = await getDb();
+          console.log("[Tool:statistik_surat] Starting query...");
+          
+          const [sm, sk, pending] = await Promise.all([
+            supabase.from("surat_masuk").select("id", { count: "exact" }),
+            supabase.from("surat_keluar").select("id", { count: "exact" }),
+            supabase.from("surat_keluar").select("id", { count: "exact" }).eq("status", "diajukan"),
+          ]);
+          
+          console.log("[Tool:statistik_surat] Query results:", {
+            sm_count: sm.count,
+            sm_error: sm.error?.message,
+            sk_count: sk.count,
+            sk_error: sk.error?.message,
+            pending_count: pending.count,
+            pending_error: pending.error?.message
+          });
+          
+          // Check for errors
+          if (sm.error) return { error: `Surat masuk: ${sm.error.message}` };
+          if (sk.error) return { error: `Surat keluar: ${sk.error.message}` };
+          if (pending.error) return { error: `Pending: ${pending.error.message}` };
+          
+          const result = { 
+            surat_masuk: { total: sm.count || 0 },
+            surat_keluar: { total: sk.count || 0, menunggu_approval: pending.count || 0 }
+          };
+          
+          console.log("[Tool:statistik_surat] Returning result:", JSON.stringify(result));
+          return result;
+        } catch (err: any) {
+          console.error("[Tool:statistik_surat] Exception:", err?.message);
+          return { error: `Exception: ${err?.message}` };
+        }
       }
     },
 
