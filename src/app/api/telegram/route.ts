@@ -108,25 +108,32 @@ async function runAI(
         maxSteps: 5,
       } as any);
 
+      // Log RAW result untuk debugging
+      console.log(`[TG Bot] ${modelName} RAW result object keys:`, Object.keys(result));
+      console.log(`[TG Bot] ${modelName} RAW result (full):`, JSON.stringify(result, null, 2).substring(0, 1000));
+
       console.log(`[TG Bot] ${modelName} result:`, JSON.stringify({
         text: result.text?.substring(0, 100) || "(empty)",
         textLength: result.text?.length || 0,
         toolCallsCount: result.toolCalls?.length || 0,
         toolResultsCount: result.toolResults?.length || 0,
-        steps: result.steps?.length || 0
+        steps: result.steps?.length || 0,
+        responseMessages: result.responseMessages?.length || 0
       }));
 
       // Log semua tool results untuk debugging
       if (result.toolResults && result.toolResults.length > 0) {
         console.log(`[TG Bot] Total tool results: ${result.toolResults.length}`);
         result.toolResults.forEach((tr: any, idx: number) => {
-          console.log(`[TG Bot] Tool result ${idx}:`, {
+          console.log(`[TG Bot] Tool result ${idx} RAW:`, JSON.stringify(tr).substring(0, 500));
+          console.log(`[TG Bot] Tool result ${idx} details:`, {
             toolName: tr.toolName,
             hasResult: !!tr.result,
             resultIsNull: tr.result === null,
             resultIsUndefined: tr.result === undefined,
             resultType: typeof tr.result,
             hasError: !!tr.result?.error,
+            args: tr.args,
             resultPreview: tr.result 
               ? (typeof tr.result === 'object' 
                 ? JSON.stringify(tr.result).substring(0, 300)
