@@ -21,7 +21,10 @@ const openrouter = createOpenAI({
 
 // Kirim pesan ke Telegram
 async function sendMessage(chatId: number, text: string, parseMode = "Markdown") {
-  await fetch(`${TELEGRAM_API}/sendMessage`, {
+  console.log("[TG Bot] sendMessage called with chatId:", chatId);
+  console.log("[TG Bot] TELEGRAM_API:", TELEGRAM_API);
+  
+  const response = await fetch(`${TELEGRAM_API}/sendMessage`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -31,6 +34,16 @@ async function sendMessage(chatId: number, text: string, parseMode = "Markdown")
       disable_web_page_preview: true,
     }),
   });
+  
+  const result = await response.json();
+  console.log("[TG Bot] Telegram API response:", JSON.stringify(result));
+  
+  if (!result.ok) {
+    console.error("[TG Bot] Telegram API error:", result);
+    throw new Error(`Telegram API error: ${result.description}`);
+  }
+  
+  return result;
 }
 
 // Kirim "typing..." indicator
@@ -114,24 +127,47 @@ async function runAI(
 
 export async function POST(req: Request) {
   try {
+    console.log("[TG Bot] Received webhook request");
+    
+    // Debug: cek environment variables
+    console.log("[TG Bot] BOT_TOKEN exists:", !!BOT_TOKEN);
+    console.log("[TG Bot] BOT_TOKEN length:", BOT_TOKEN?.length || 0);
+    
     const body = await req.json();
+    console.log("[TG Bot] Request body:", JSON.stringify(body));
+    
     const message = body?.message;
-    if (!message) return new Response("ok");
+    if (!message) {
+      console.log("[TG Bot] No message in body, returning ok");
+      return new Response("ok");
+    }
 
     const chatId: number = message.chat.id;
     const telegramUserId: number = message.from?.id;
     const text: string = message.text || "";
+    
+    console.log("[TG Bot] chatId:", chatId, "userId:", telegramUserId, "text:", text);
 
     // ── /start command ────────────────────────────────────────────────────────
     if (text.startsWith("/start")) {
-      await sendMessage(
-        chatId,
-        `👋 *Halo! Selamat datang di SIPAS Bot.*\n\n` +
+      console.log("[TG Bot] Processing /start command");
+      
+      const responseText = `👋 *Halo! Selamat datang di SIPAS Bot.*\n\n` +
         `Bot ini terhubung ke *Sistem Informasi Persuratan Kabupaten Karawang*.\n\n` +
         `🔑 *Telegram ID kamu:* \`${telegramUserId}\`\n\n` +
         `Kirimkan ID di atas ke admin SIPAS untuk mendaftarkan akunmu.\n` +
-        `Setelah terdaftar, kamu bisa langsung bertanya tentang surat, statistik, approval, dan lainnya.`
-      );
+        `Setelah terdaftar, kamu bisa langsung bertanya tentang surat, statistik, approval, dan lainnya.`;
+      
+      console.log("[TG Bot] Sending message to chatId:", chatId);
+      
+      try {
+        await sendMessage(chatId, responseText);
+        console.log("[TG Bot] Message sent successfully");
+      } catch (sendErr: any) {
+        console.error("[TG Bot] Failed to send message:", sendErr?.message);
+        console.error("[TG Bot] Send error details:", sendErr);
+      }
+      
       return new Response("ok");
     }
 
