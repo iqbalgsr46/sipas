@@ -4,13 +4,26 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
-const allNavItems = [
-  { href: "/dashboard", icon: "space_dashboard", label: "Dashboard", roles: ["admin", "staf", "pimpinan"] },
-  { href: "/surat-masuk", icon: "mail", label: "Surat Masuk", roles: ["admin", "staf", "pimpinan"] },
-  { href: "/surat-keluar", icon: "send", label: "Surat Keluar", roles: ["admin", "staf", "pimpinan"] },
-  { href: "/approval", icon: "pending_actions", label: "Approval", roles: ["admin", "pimpinan"] },
-  { href: "/users", icon: "group", label: "Manajemen User", roles: ["admin"] },
-  { href: "/settings", icon: "settings", label: "Pengaturan", roles: ["admin", "staf", "pimpinan"] },
+import {
+  GridIcon,
+  ListIcon,
+  PageIcon,
+  BoxCubeIcon,
+  GroupIcon,
+  PlugInIcon,
+  UserCircleIcon
+} from "@/icons";
+
+const mainNavItems = [
+  { href: "/dashboard", Icon: GridIcon, label: "Dashboard", roles: ["admin", "staf", "pimpinan"] },
+  { href: "/surat-masuk", Icon: ListIcon, label: "Surat Masuk", roles: ["admin", "staf", "pimpinan"] },
+  { href: "/surat-keluar", Icon: PageIcon, label: "Surat Keluar", roles: ["admin", "staf", "pimpinan"] },
+  { href: "/approval", Icon: BoxCubeIcon, label: "Approval", roles: ["admin", "pimpinan"] },
+];
+
+const othersNavItems = [
+  { href: "/users", Icon: UserCircleIcon, label: "Users", roles: ["admin"] },
+  { href: "/settings", Icon: PlugInIcon, label: "Settings", roles: ["admin", "staf", "pimpinan"] },
 ];
 
 export default function Sidebar({ isCollapsed = false }: { isCollapsed?: boolean }) {
@@ -35,32 +48,62 @@ export default function Sidebar({ isCollapsed = false }: { isCollapsed?: boolean
     setIsOpen(false);
   }, [pathname]);
 
-  const navItems = allNavItems.filter((item) => item.roles.includes(userRole));
+  const filteredMainNav = mainNavItems.filter((item) => item.roles.includes(userRole));
+  const filteredOthersNav = othersNavItems.filter((item) => item.roles.includes(userRole));
 
-  const NavLinks = (
-    <nav className={`flex-1 overflow-y-auto py-4 flex flex-col gap-1 font-public-sans text-sm font-medium ${isCollapsed ? "px-2" : "px-3"}`}>
-      {navItems.map((item) => {
+  const renderNavGroup = (items: typeof mainNavItems) => (
+    <ul className="flex flex-col gap-4">
+      {items.map((item) => {
         const isActive = pathname === item.href;
         return (
-          <Link
-            key={item.href}
-            href={item.href}
-            title={isCollapsed ? item.label : undefined}
-            className={`flex items-center gap-3 py-2.5 transition-all duration-150 active:scale-[0.98] ${
-              isCollapsed ? "justify-center rounded-xl px-0 border-none mx-auto w-12" : "px-3 rounded-r-lg border-l-4"
-            } ${
-              isActive
-                ? isCollapsed ? "bg-primary-container text-on-primary-container" : "border-primary bg-primary-container text-on-primary-container font-semibold"
-                : isCollapsed ? "text-on-surface-variant hover:text-primary hover:bg-surface-container-low" : "border-transparent text-on-surface-variant hover:text-primary hover:bg-surface-container-low"
-            }`}
-          >
-            <span className={`material-symbols-outlined shrink-0 text-[24px] ${isActive ? "icon-fill" : ""}`}>
-              {item.icon}
-            </span>
-            {!isCollapsed && <span className="text-[15px] truncate">{item.label}</span>}
-          </Link>
+          <li key={item.href}>
+            <Link
+              href={item.href}
+              title={isCollapsed ? item.label : undefined}
+              className={`menu-item group ${
+                isActive ? "menu-item-active" : "menu-item-inactive"
+              } ${isCollapsed ? "justify-center" : "justify-start"}`}
+            >
+              <span
+                className={`${
+                  isActive ? "menu-item-icon-active" : "menu-item-icon-inactive"
+                }`}
+              >
+                <item.Icon />
+              </span>
+              {!isCollapsed && <span className="menu-item-text">{item.label}</span>}
+            </Link>
+          </li>
         );
       })}
+    </ul>
+  );
+
+  const NavLinks = (
+    <nav className="flex-1 overflow-y-auto duration-300 ease-linear no-scrollbar mt-6 px-5">
+      <div className="flex flex-col gap-4">
+        <div>
+          <h2
+            className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
+              isCollapsed ? "justify-center" : "justify-start"
+            }`}
+          >
+            {isCollapsed ? "..." : "MENU"}
+          </h2>
+          {renderNavGroup(filteredMainNav)}
+        </div>
+
+        <div>
+          <h2
+            className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
+              isCollapsed ? "justify-center" : "justify-start"
+            }`}
+          >
+            {isCollapsed ? "..." : "OTHERS"}
+          </h2>
+          {renderNavGroup(filteredOthersNav)}
+        </div>
+      </div>
     </nav>
   );
 
@@ -117,15 +160,15 @@ export default function Sidebar({ isCollapsed = false }: { isCollapsed?: boolean
 
       {/* ── Sidebar Panel ── */}
       <aside
-        className={`fixed left-0 top-0 h-full z-50 flex flex-col bg-surface-container-lowest border-r border-outline-variant shadow-xl
+        className={`fixed left-0 top-0 h-full z-50 flex flex-col bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 shadow-xl
           transition-all duration-300 ease-in-out
           ${isOpen ? "translate-x-0" : "-translate-x-full"}
           md:translate-x-0 md:z-40 md:shadow-none
-          ${isCollapsed ? "md:w-[88px] w-[280px]" : "w-[280px]"}
+          ${isCollapsed ? "md:w-[90px] w-[290px]" : "w-[290px]"}
         `}
       >
         {/* Header: Brand + Close Button */}
-        <div className={`flex items-center ${isCollapsed ? "justify-center px-0" : "justify-between px-5"} h-[64px] border-b border-outline-variant shrink-0`}>
+        <div className={`py-8 flex ${isCollapsed ? "justify-center px-0" : "justify-start px-5"} shrink-0`}>
           <div className="flex items-center gap-3">
             {/* Lambang Kabupaten Karawang */}
             <div className="w-9 h-9 shrink-0">
@@ -157,7 +200,8 @@ export default function Sidebar({ isCollapsed = false }: { isCollapsed?: boolean
         </div>
 
         {NavLinks}
-        {RoleBadge}
+        <div className="mt-auto px-5 pb-6">
+        </div>
       </aside>
     </>
   );

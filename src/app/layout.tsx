@@ -1,7 +1,13 @@
 import type { Metadata } from "next";
+import { Outfit } from "next/font/google";
 import "./globals.css";
 import { ToastProvider } from "@/components/Toast";
+import { SidebarProvider } from "@/context/SidebarContext";
 import { ThemeProvider } from "@/components/theme-provider";
+
+const outfit = Outfit({
+  subsets: ["latin"],
+});
 
 export const metadata: Metadata = {
   title: "SIPAS - Sistem Informasi Persuratan",
@@ -15,33 +21,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id" className="h-full antialiased" suppressHydrationWarning>
+    <html lang="id" suppressHydrationWarning>
       <head>
-        {/* Google Fonts: Inter + Public Sans */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Public+Sans:wght@500;600;700&display=swap"
-          rel="stylesheet"
-        />
-        {/* Material Symbols */}
+        {/* Material Symbols for Toast and existing components */}
         <link
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-full">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <ToastProvider>{children}</ToastProvider>
+      <body className={outfit.className}>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+          <SidebarProvider>
+            <ToastProvider>{children}</ToastProvider>
+          </SidebarProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -3,16 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import Beams from "@/components/Beams";
 
-/**
- * Halaman Login SIPAS
- * -------------------
- * Menggunakan Supabase Auth untuk autentikasi email + password.
- *
- * Untuk demo/development tanpa Supabase Auth,
- * bisa gunakan login sederhana dengan query ke tabel users.
- */
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -28,9 +19,6 @@ export default function LoginPage() {
     setError("");
 
     try {
-      // ======================================
-      // OPSI 1: Login dengan Supabase Auth (REAL IMPLEMENTATION)
-      // ======================================
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -40,7 +28,6 @@ export default function LoginPage() {
         throw new Error(authError?.message || "Email atau password salah.");
       }
 
-      // Ambil data profil dari tabel users untuk disimpan di localStorage (opsional untuk cache UI cepat)
       const { data: profile, error: profileError } = await supabase
         .from("users")
         .select("*")
@@ -50,7 +37,6 @@ export default function LoginPage() {
       if (!profileError && profile) {
         localStorage.setItem("sipas_user", JSON.stringify(profile));
       } else {
-        // Jika gagal ambil profil, tetap simpan data auth basic
         localStorage.setItem("sipas_user", JSON.stringify({
           id: authData.user.id,
           email: authData.user.email,
@@ -58,7 +44,6 @@ export default function LoginPage() {
         }));
       }
 
-      // Redirect ke dashboard (Gunakan window.location untuk force middleware membaca cookie baru)
       window.location.href = "/dashboard";
     } catch (err) {
       setError(
@@ -70,39 +55,17 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="dark relative w-full h-screen overflow-hidden flex items-center justify-center p-6 bg-surface-container">
-      {/* Tailwind UI Background Blob 1 */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-x-0 -top-40 z-0 transform-gpu overflow-hidden blur-3xl sm:-top-80 pointer-events-none"
-      >
-        <div
-          style={{
-            clipPath:
-              'polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)',
-          }}
-          className="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-40 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"
-        />
+    <main className="w-full min-h-screen flex items-center justify-center p-6 bg-gray-50 dark:bg-gray-950 font-outfit relative overflow-hidden">
+      {/* Dynamic Background Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-brand-500/10 blur-[120px]" />
+        <div className="absolute top-[60%] -right-[10%] w-[40%] h-[40%] rounded-full bg-blue-500/10 blur-[120px]" />
       </div>
 
-      {/* Tailwind UI Background Blob 2 */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-x-0 top-[calc(100%-13rem)] z-0 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)] pointer-events-none"
-      >
-        <div
-          style={{
-            clipPath:
-              'polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)',
-          }}
-          className="relative left-[calc(50%+3rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-40 sm:left-[calc(50%+36rem)] sm:w-[72.1875rem]"
-        />
-      </div>
-      <div className="relative z-10 w-full max-w-[420px] bg-white/5 dark:bg-black/20 backdrop-blur-2xl rounded-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] p-8 border border-white/10 flex flex-col items-center">
+      <div className="relative z-10 w-full max-w-[440px] bg-white dark:bg-gray-900 rounded-2xl shadow-theme-xl p-8 sm:p-10 border border-gray-100 dark:border-gray-800">
         {/* Brand / Header */}
         <div className="flex flex-col items-center mb-8 text-center">
-          {/* Logo Lambang Kabupaten Karawang */}
-          <div className="w-20 h-20 mb-4 drop-shadow-lg">
+          <div className="w-20 h-20 mb-5 relative drop-shadow-sm">
             <img
               src="https://upload.wikimedia.org/wikipedia/commons/9/9d/LAMBANG_KABUPATEN_KARAWANG.svg"
               alt="Lambang Kabupaten Karawang"
@@ -110,60 +73,63 @@ export default function LoginPage() {
               loading="eager"
             />
           </div>
-          <h1 className="font-public-sans text-4xl font-bold text-primary mb-1 tracking-tight">
-            SIPAS
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2 tracking-tight">
+            SIPAS Karawang
           </h1>
-          <p className="font-inter text-sm text-on-surface-variant">
-            Sistem Informasi Persuratan
-          </p>
-          <p className="font-inter text-xs text-outline mt-0.5">
-            Kabupaten Karawang
+          <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
+            Sistem Informasi Persuratan Digital
           </p>
         </div>
 
         {/* Error Message */}
         {error && (
-          <div className="w-full mb-4 p-3 bg-error-container text-on-error-container rounded-lg text-sm font-medium flex items-center gap-2">
-            <span className="material-symbols-outlined text-[18px]">error</span>
+          <div className="w-full mb-6 p-4 bg-error-50 dark:bg-error-500/10 text-error-600 dark:text-error-400 border border-error-100 dark:border-error-500/20 rounded-xl text-sm font-medium flex items-center gap-2.5">
+            <span className="material-symbols-outlined text-[20px]">error</span>
             {error}
           </div>
         )}
 
+        {/* Forgot password message */}
+        {forgotMsg && (
+          <div className={`w-full mb-6 p-4 border rounded-xl text-sm font-medium flex items-start gap-2.5 ${
+            forgotMsg.startsWith("Gagal") || forgotMsg.startsWith("Masukkan")
+              ? "bg-error-50 border-error-100 text-error-600 dark:bg-error-500/10 dark:border-error-500/20 dark:text-error-400"
+              : "bg-success-50 border-success-100 text-success-600 dark:bg-success-500/10 dark:border-success-500/20 dark:text-success-500"
+          }`}>
+            <span className="material-symbols-outlined text-[20px] shrink-0 mt-0.5">
+              {forgotMsg.startsWith("Gagal") || forgotMsg.startsWith("Masukkan") ? "error" : "check_circle"}
+            </span>
+            <p className="leading-relaxed">{forgotMsg}</p>
+          </div>
+        )}
+
         {/* Login Form */}
-        <form onSubmit={handleLogin} className="w-full space-y-4">
+        <form onSubmit={handleLogin} className="w-full space-y-5">
           {/* Email Input */}
-          <div className="space-y-1">
-            <label
-              htmlFor="email"
-              className="block font-inter text-xs font-bold text-on-surface-variant uppercase tracking-widest"
-            >
+          <div className="space-y-1.5">
+            <label htmlFor="email" className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
               Email Address
             </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <span className="material-symbols-outlined text-outline">
-                  person
-                </span>
+            <div className="relative group">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-brand-500 transition-colors">
+                <span className="material-symbols-outlined text-[20px]">person</span>
               </div>
               <input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
+                placeholder="admin@karawangkab.go.id"
                 required
-                className="w-full pl-12 pr-4 py-3 bg-surface border border-outline-variant rounded-lg text-on-surface font-inter text-base focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-150 outline-none placeholder:text-outline/70"
+                className="w-full pl-11 pr-4 py-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-800 rounded-xl text-gray-800 dark:text-white/90 text-sm focus:bg-white dark:focus:bg-gray-900 focus:ring-[3px] focus:ring-brand-500/20 focus:border-brand-500 outline-none transition-all placeholder:text-gray-400"
               />
             </div>
           </div>
 
           {/* Password Input */}
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             <div className="flex justify-between items-center">
-              <label
-                htmlFor="password"
-                className="block font-inter text-xs font-bold text-on-surface-variant uppercase tracking-widest"
-              >
+              <label htmlFor="password" className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                 Password
               </label>
               <button
@@ -180,14 +146,14 @@ export default function LoginPage() {
                     else setForgotMsg("Link reset password telah dikirim ke " + email + ". Periksa inbox Anda.");
                   });
                 }}
-                className="font-inter text-xs text-primary hover:underline transition-colors duration-150"
+                className="text-xs font-semibold text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 transition-colors"
               >
                 Lupa Password?
               </button>
             </div>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <span className="material-symbols-outlined text-outline">lock</span>
+            <div className="relative group">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-brand-500 transition-colors">
+                <span className="material-symbols-outlined text-[20px]">lock</span>
               </div>
               <input
                 id="password"
@@ -196,12 +162,12 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Masukkan password"
                 required
-                className="w-full pl-12 pr-12 py-3 bg-surface border border-outline-variant rounded-lg text-on-surface font-inter text-base focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-150 outline-none placeholder:text-outline/70"
+                className="w-full pl-11 pr-12 py-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-800 rounded-xl text-gray-800 dark:text-white/90 text-sm focus:bg-white dark:focus:bg-gray-900 focus:ring-[3px] focus:ring-brand-500/20 focus:border-brand-500 outline-none transition-all placeholder:text-gray-400"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((v) => !v)}
-                className="absolute inset-y-0 right-0 pr-4 flex items-center text-on-surface-variant hover:text-on-surface transition-colors"
+                className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                 aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
               >
                 <span className="material-symbols-outlined text-[20px]">
@@ -211,38 +177,24 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Forgot password message */}
-          {forgotMsg && (
-            <div className={`p-3 rounded-lg text-sm font-inter flex items-start gap-2 ${
-              forgotMsg.startsWith("Gagal") || forgotMsg.startsWith("Masukkan")
-                ? "bg-error-container text-on-error-container"
-                : "bg-[#e8f5e9] text-[#1b5e20]"
-            }`}>
-              <span className="material-symbols-outlined text-[16px] shrink-0 mt-0.5">
-                {forgotMsg.startsWith("Gagal") || forgotMsg.startsWith("Masukkan") ? "error" : "check_circle"}
-              </span>
-              {forgotMsg}
-            </div>
-          )}
-
           {/* Submit Button */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-2 py-3 px-4 bg-primary text-on-primary font-inter text-sm font-semibold rounded-lg hover:opacity-90 transition-all duration-150 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed active:scale-[0.98]"
+            className="w-full mt-4 py-3.5 px-4 bg-brand-500 text-white font-bold text-sm rounded-xl hover:bg-brand-600 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed active:scale-[0.98] shadow-theme-md shadow-brand-500/25"
           >
             {loading ? (
               <><span className="animate-spin material-symbols-outlined text-[20px]">progress_activity</span>Memverifikasi…</>
             ) : (
-              <><span>Masuk</span><span className="material-symbols-outlined text-[20px]">login</span></>
+              <><span>Masuk ke Dashboard</span><span className="material-symbols-outlined text-[20px]">arrow_forward</span></>
             )}
           </button>
         </form>
       </div>
 
       {/* Footer */}
-      <p className="absolute bottom-6 text-center text-on-surface-variant font-inter text-sm">
-        © 2026 SIPAS Digital. All rights reserved.
+      <p className="absolute bottom-6 text-center text-gray-500 dark:text-gray-500 text-sm font-medium">
+        © {new Date().getFullYear()} SIPAS Digital. All rights reserved.
       </p>
     </main>
   );

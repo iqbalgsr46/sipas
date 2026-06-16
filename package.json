@@ -9,11 +9,16 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@ai-sdk/deepseek": "^2.0.38",
+    "@ai-sdk/google": "^3.0.82",
+    "@ai-sdk/openai": "^3.0.71",
+    "@ai-sdk/react": "^3.0.208",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.6.0",
     "@react-three/postprocessing": "^3.0.4",
     "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.104.1",
+    "ai": "^6.0.206",
     "clsx": "^2.1.1",
     "lucide-react": "^1.11.0",
     "motion": "^12.38.0",
@@ -22,10 +27,13 @@
     "postprocessing": "^6.39.1",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
     "tailwind-merge": "^3.5.0",
     "three": "^0.168.0"
   },
   "devDependencies": {
+    "@svgr/webpack": "^8.1.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

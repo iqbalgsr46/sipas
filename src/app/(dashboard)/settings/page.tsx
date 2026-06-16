@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/components/Toast";
+import ModalPortal from "@/components/Modal";
 
 export default function SettingsPage() {
   const { showToast } = useToast();
@@ -17,6 +18,11 @@ export default function SettingsPage() {
     username: "",
   });
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+
+  // Modals
+  const [editProfileOpen, setEditProfileOpen] = useState(false);
+  const [editAddressOpen, setEditAddressOpen] = useState(false);
+  const [editSecurityOpen, setEditSecurityOpen] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -51,15 +57,13 @@ export default function SettingsPage() {
     }
   }
 
-  async function handleSave(e: React.FormEvent) {
+  async function handleSaveProfile(e: React.FormEvent) {
     e.preventDefault();
     if (!profile) return;
-
     if (!form.full_name.trim() || !form.username.trim()) {
       showToast("warning", "Validasi Gagal", "Nama dan username tidak boleh kosong.");
       return;
     }
-
     setSaving(true);
     try {
       const { error } = await supabase
@@ -77,6 +81,7 @@ export default function SettingsPage() {
       localStorage.setItem("sipas_user", JSON.stringify(updatedProfile));
       window.dispatchEvent(new Event("profileUpdate"));
       showToast("success", "Profil Diperbarui", "Data Anda berhasil disimpan.");
+      setEditProfileOpen(false);
     } catch (err: any) {
       showToast("error", "Gagal Menyimpan", err.message);
     } finally {
@@ -100,13 +105,11 @@ export default function SettingsPage() {
       const ext = file.name.split(".").pop() ?? "jpg";
       const filePath = `avatars/${profile.id}.${ext}`;
 
-      // Upload to Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from("documents")
         .upload(filePath, file, { upsert: true });
       if (uploadError) throw uploadError;
 
-      // Get public URL
       const { data: urlData } = supabase.storage
         .from("documents")
         .getPublicUrl(filePath);
@@ -114,14 +117,13 @@ export default function SettingsPage() {
 
       if (!publicUrl) throw new Error("Gagal mendapatkan URL foto.");
 
-      // Update user record
       const { error: updateError } = await supabase
         .from("users")
         .update({ avatar_url: publicUrl } as any)
         .eq("id", profile.id);
       if (updateError) throw updateError;
 
-      setAvatarUrl(publicUrl + "?t=" + Date.now()); // cache bust
+      setAvatarUrl(publicUrl + "?t=" + Date.now()); 
       const updatedProfile = { ...profile, avatar_url: publicUrl };
       setProfile(updatedProfile);
       localStorage.setItem("sipas_user", JSON.stringify(updatedProfile));
@@ -140,11 +142,32 @@ export default function SettingsPage() {
     if (file) handleAvatarUpload(file);
   }
 
+  // Mock save handlers for static sections
+  const handleSaveAddress = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    setTimeout(() => {
+      setSaving(false);
+      setEditAddressOpen(false);
+      showToast("success", "Alamat Diperbarui", "Data alamat berhasil disimpan.");
+    }, 600);
+  };
+
+  const handleSaveSecurity = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    setTimeout(() => {
+      setSaving(false);
+      setEditSecurityOpen(false);
+      showToast("success", "Keamanan Diperbarui", "Data keamanan berhasil disimpan.");
+    }, 600);
+  };
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center h-64 gap-3">
-        <span className="material-symbols-outlined animate-spin text-primary text-[40px]">progress_activity</span>
-        <p className="font-inter text-sm text-on-surface-variant">Memuat profil...</p>
+        <span className="material-symbols-outlined animate-spin text-brand-500 text-[40px]">progress_activity</span>
+        <p className="text-sm text-gray-500">Memuat profil...</p>
       </div>
     );
   }
@@ -152,73 +175,49 @@ export default function SettingsPage() {
   if (!profile) {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
-        <span className="material-symbols-outlined text-error text-[60px]">error</span>
-        <p className="text-on-surface-variant font-inter">Profil tidak ditemukan.</p>
+        <span className="material-symbols-outlined text-error-500 text-[60px]">error</span>
+        <p className="text-gray-500">Profil tidak ditemukan.</p>
       </div>
     );
   }
 
-  const getRoleBadgeStyle = (role: string) => {
-    const map: Record<string, string> = {
-      admin: "bg-error-container text-on-error-container",
-      staf: "bg-secondary-container text-on-secondary-container",
-      pimpinan: "bg-primary-container text-on-primary-container",
-    };
-    return map[role] || "bg-surface-variant text-on-surface-variant";
-  };
+  const cleanName = (profile.full_name || "User").replace(/\s*\(.*?\)\s*/g, '');
 
   return (
-    <div className="flex flex-col gap-8 max-w-3xl">
-      {/* Page Header */}
+    <div className="flex flex-col gap-6 max-w-[1000px] pb-10">
       <div>
-        <h2 className="font-public-sans text-2xl font-bold text-on-background tracking-tight">Pengaturan Profil</h2>
-        <p className="font-inter text-sm text-on-surface-variant mt-1">Kelola informasi akun dan preferensi Anda.</p>
+        <h2 className="text-xl font-bold text-gray-800 dark:text-white/90">Profil</h2>
       </div>
 
-      {/* Profile Card */}
-      <div className="bg-surface rounded-2xl border border-outline-variant shadow-sm overflow-hidden">
-        {/* Header Section */}
-        <div className="p-6 sm:p-8 border-b border-outline-variant flex flex-col sm:flex-row items-center gap-6 relative">
-          {/* Subtle background decoration */}
-          <div className="absolute right-0 top-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
-          
-          <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-start gap-6 w-full">
-            {/* Circular Avatar */}
+      {/* 1. Profile Meta Card */}
+      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 sm:p-8 shadow-sm">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-10">
+          <div className="flex items-center gap-5">
             <div
-              className="relative group cursor-pointer shrink-0"
+              className="relative group cursor-pointer shrink-0 w-[84px] h-[84px] rounded-full overflow-hidden bg-brand-50 text-brand-500 flex items-center justify-center border border-gray-100 dark:border-gray-800"
               onClick={() => fileRef.current?.click()}
               onDragOver={(e) => e.preventDefault()}
               onDrop={handleDrop}
             >
-              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-surface overflow-hidden bg-primary text-on-primary flex items-center justify-center shadow-md ring-1 ring-outline-variant/50">
-                {avatarUrl ? (
-                  <img
-                    src={avatarUrl}
-                    alt="Avatar"
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <span className="text-4xl sm:text-5xl font-bold uppercase font-public-sans">
-                    {(profile.full_name || "User").replace(/\s*\(.*?\)\s*/g, '').charAt(0)}
-                  </span>
-                )}
-              </div>
-              {/* Hover overlay */}
-              <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-3xl font-bold uppercase">
+                  {cleanName.charAt(0)}
+                </span>
+              )}
+              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white backdrop-blur-sm">
                 {uploadingAvatar ? (
-                  <span className="material-symbols-outlined animate-spin text-white text-[28px]">progress_activity</span>
+                  <span className="material-symbols-outlined animate-spin text-[24px]">progress_activity</span>
                 ) : (
-                  <div className="flex flex-col items-center text-white">
-                    <span className="material-symbols-outlined text-[24px]">photo_camera</span>
-                    <span className="font-inter text-[10px] font-bold mt-1">UBAH</span>
-                  </div>
+                  <>
+                    <span className="material-symbols-outlined text-[20px]">photo_camera</span>
+                    <span className="text-[10px] font-medium mt-0.5">Ubah</span>
+                  </>
                 )}
               </div>
               <input
-                ref={fileRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
+                ref={fileRef} type="file" accept="image/*" className="hidden"
                 onChange={(e) => {
                   const file = e.target.files?.[0];
                   if (file) handleAvatarUpload(file);
@@ -226,145 +225,310 @@ export default function SettingsPage() {
                 }}
               />
             </div>
-
-            <div className="text-center sm:text-left flex-1">
-              <h3 className="text-xl sm:text-2xl font-bold text-on-surface font-public-sans tracking-tight">
-                {(profile.full_name || "User").replace(/\s*\(.*?\)\s*/g, '')}
+            <div>
+              <h3 className="text-lg font-bold text-gray-800 dark:text-white/90">
+                {cleanName}
               </h3>
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mt-1.5">
-                <span className={`inline-flex w-fit mx-auto sm:mx-0 px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-widest ${getRoleBadgeStyle(profile.role)}`}>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 mt-1.5">
+                <p className="text-sm text-gray-500 dark:text-gray-400 capitalize">
                   {profile.role}
-                </span>
-                <span className="text-on-surface-variant text-sm font-inter flex items-center justify-center sm:justify-start gap-1.5">
-                  <span className="material-symbols-outlined text-[14px]">mail</span>
-                  {profile.email}
-                </span>
+                </p>
+                <div className="hidden sm:block w-px h-3.5 bg-gray-300 dark:bg-gray-700"></div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Indonesia
+                </p>
               </div>
-              <p className="font-inter text-[11px] text-outline mt-3">
-                Format yang didukung: JPG, PNG, GIF • Maks. 2 MB
-              </p>
+            </div>
+          </div>
+          <button 
+            onClick={() => setEditProfileOpen(true)}
+            className="flex items-center justify-center gap-2 px-5 py-2.5 border border-gray-300 dark:border-gray-700 rounded-full text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors shrink-0 w-full sm:w-auto"
+          >
+            <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+            Edit
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-y-8 gap-x-4">
+          <div className="col-span-1 sm:col-span-2">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Nama Lengkap</p>
+            <p className="text-sm font-medium text-gray-800 dark:text-white/90">{profile.full_name}</p>
+          </div>
+          <div className="col-span-1 sm:col-span-2">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Username</p>
+            <p className="text-sm font-medium text-gray-800 dark:text-white/90">{profile.username}</p>
+          </div>
+          <div className="col-span-1 sm:col-span-2 md:col-span-2">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Email address</p>
+            <p className="text-sm font-medium text-gray-800 dark:text-white/90">{profile.email}</p>
+          </div>
+          <div className="col-span-1 sm:col-span-1">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Role</p>
+            <p className="text-sm font-medium text-gray-800 dark:text-white/90 capitalize">{profile.role}</p>
+          </div>
+          <div className="col-span-1 sm:col-span-1">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Bergabung</p>
+            <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+              {new Date(profile.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* 2. Address Card (Mock) */}
+      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 sm:p-8 shadow-sm">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-8">
+          <h3 className="text-lg font-bold text-gray-800 dark:text-white/90">Alamat</h3>
+          <button 
+            onClick={() => setEditAddressOpen(true)}
+            className="flex items-center justify-center gap-2 px-5 py-2.5 border border-gray-300 dark:border-gray-700 rounded-full text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors shrink-0 w-full sm:w-auto"
+          >
+            <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+            Edit
+          </button>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-8 gap-x-8">
+          <div>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Negara</p>
+            <p className="text-sm font-medium text-gray-800 dark:text-white/90">Indonesia</p>
+          </div>
+          <div>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Kota/Provinsi</p>
+            <p className="text-sm font-medium text-gray-800 dark:text-white/90">Jakarta, ID.</p>
+          </div>
+          <div>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Kode Pos</p>
+            <p className="text-sm font-medium text-gray-800 dark:text-white/90">10110</p>
+          </div>
+          <div>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">NPWP</p>
+            <p className="text-sm font-medium text-gray-800 dark:text-white/90">AS4568384</p>
+          </div>
+        </div>
+      </div>
+
+      {/* 3. Security Card (Mock) */}
+      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 sm:p-8 shadow-sm">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-8">
+          <h3 className="text-lg font-bold text-gray-800 dark:text-white/90">Keamanan</h3>
+          <button 
+            onClick={() => setEditSecurityOpen(true)}
+            className="flex items-center justify-center gap-2 px-5 py-2.5 border border-gray-300 dark:border-gray-700 rounded-full text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors shrink-0 w-full sm:w-auto"
+          >
+            <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+            Edit
+          </button>
+        </div>
+        <div className="grid grid-cols-1 gap-y-8">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-medium text-gray-800 dark:text-white/90 mb-1">Kata Sandi</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Terakhir diubah 3 bulan yang lalu</p>
+            </div>
+            <p className="text-sm font-medium text-gray-800 dark:text-white/90 tracking-[0.25em]">••••••••••</p>
+          </div>
+          <div className="w-full h-px bg-gray-100 dark:bg-gray-800"></div>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-medium text-gray-800 dark:text-white/90 mb-1">Autentikasi Dua Langkah</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Tambahkan lapis keamanan ekstra</p>
+            </div>
+            <span className="px-2.5 py-1 text-[10px] font-bold tracking-wide uppercase bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400 rounded-md">Nonaktif</span>
+          </div>
+        </div>
+      </div>
+
+      {/* --- MODALS --- */}
+      
+      {/* Edit Profile Modal */}
+      <ModalPortal open={editProfileOpen} onClose={() => setEditProfileOpen(false)}>
+        <div className="w-full overflow-y-auto max-h-[90dvh]">
+          <div className="p-8 pr-14">
+            {/* Header */}
+            <div className="mb-7">
+              <h4 className="text-[22px] font-bold text-gray-900 dark:text-white mb-1.5">Edit Informasi Pribadi</h4>
+              <p className="text-sm text-gray-400 dark:text-gray-500">Perbarui detail Anda agar profil tetap terkini.</p>
+            </div>
+
+            {/* Change Profile Picture */}
+            <div className="mb-8">
+              <h5 className="text-[15px] font-bold text-gray-900 dark:text-white mb-5">Ganti Foto Profil</h5>
+              <div className="flex items-center gap-6">
+                <div
+                  className="relative cursor-pointer shrink-0"
+                  onClick={() => fileRef.current?.click()}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={handleDrop}
+                >
+                  <div className="w-[90px] h-[90px] rounded-full overflow-hidden bg-[#EEF0FF] text-brand-500 flex items-center justify-center border border-gray-100 dark:border-gray-800">
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-4xl font-bold uppercase text-brand-400">{cleanName.charAt(0)}</span>
+                    )}
+                  </div>
+                  {/* Camera badge */}
+                  <div className="absolute bottom-0 right-0 w-8 h-8 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full flex items-center justify-center shadow-md">
+                    {uploadingAvatar ? (
+                      <span className="material-symbols-outlined animate-spin text-[14px] text-gray-500">progress_activity</span>
+                    ) : (
+                      <svg className="w-4 h-4 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                        <circle cx="12" cy="13" r="4"/>
+                      </svg>
+                    )}
+                  </div>
+                  <input
+                    ref={fileRef} type="file" accept="image/*" className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleAvatarUpload(file);
+                      e.target.value = "";
+                    }}
+                  />
+                </div>
+                <p className="text-sm text-gray-400 dark:text-gray-500 leading-relaxed">
+                  Upload gambar persegi (200×200 px)<br />dalam format JPEG atau PNG.
+                </p>
+              </div>
+            </div>
+
+            {/* Personal Information */}
+            <div>
+              <h5 className="text-[15px] font-bold text-gray-900 dark:text-white mb-5">Informasi Pribadi</h5>
+              <form onSubmit={handleSaveProfile}>
+                <div className="grid grid-cols-2 gap-x-5 gap-y-5 mb-5">
+                  {/* Nama Lengkap */}
+                  <div>
+                    <label className="block text-[13px] font-medium text-gray-700 dark:text-gray-300 mb-2">Nama Lengkap</label>
+                    <input
+                      type="text"
+                      value={form.full_name}
+                      onChange={(e) => setForm({ ...form, full_name: e.target.value })}
+                      required
+                      className="w-full px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-800 dark:text-white/90 focus:ring-2 focus:ring-brand-500/20 focus:border-brand-400 outline-none transition-all"
+                    />
+                  </div>
+                  {/* Username */}
+                  <div>
+                    <label className="block text-[13px] font-medium text-gray-700 dark:text-gray-300 mb-2">Username</label>
+                    <input
+                      type="text"
+                      value={form.username}
+                      onChange={(e) => setForm({ ...form, username: e.target.value })}
+                      required
+                      className="w-full px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-800 dark:text-white/90 focus:ring-2 focus:ring-brand-500/20 focus:border-brand-400 outline-none transition-all"
+                    />
+                  </div>
+                  {/* Email */}
+                  <div>
+                    <label className="block text-[13px] font-medium text-gray-700 dark:text-gray-300 mb-2">Alamat Email</label>
+                    <input
+                      type="email"
+                      value={profile.email}
+                      disabled
+                      className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-400 dark:text-gray-500 cursor-not-allowed"
+                    />
+                  </div>
+                  {/* Role */}
+                  <div>
+                    <label className="block text-[13px] font-medium text-gray-700 dark:text-gray-300 mb-2">Role</label>
+                    <input
+                      type="text"
+                      value={profile.role?.toUpperCase()}
+                      disabled
+                      className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-400 dark:text-gray-500 cursor-not-allowed"
+                    />
+                  </div>
+                </div>
+
+                {/* Footer Buttons */}
+                <div className="flex items-center justify-end gap-3 pt-5 border-t border-gray-100 dark:border-gray-800">
+                  <button
+                    type="button"
+                    onClick={() => setEditProfileOpen(false)}
+                    className="px-6 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 dark:text-gray-300 dark:bg-gray-900 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                  >
+                    Tutup
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={saving}
+                    className="px-6 py-2.5 bg-brand-500 text-white rounded-xl text-sm font-semibold hover:bg-brand-600 transition-colors disabled:opacity-50"
+                  >
+                    {saving ? "Menyimpan..." : "Simpan Perubahan"}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </div>
+      </ModalPortal>
 
-        {/* Form Section */}
-        <form onSubmit={handleSave} className="p-6 sm:p-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
-            {/* Email (Read-only) */}
-            <div>
-              <label className="flex items-center gap-1.5 font-inter text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">
-                <span className="material-symbols-outlined text-[14px]">mail</span>
-                Email
-              </label>
-              <div className="relative">
-                <input
-                  type="email"
-                  value={profile.email}
-                  disabled
-                  className="w-full pl-10 pr-4 py-2.5 bg-surface-container-high border-transparent rounded-xl font-inter text-sm text-on-surface-variant cursor-not-allowed"
-                />
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-on-surface-variant/50">
-                  lock
-                </span>
-              </div>
-              <p className="text-[11px] text-outline mt-1.5 flex items-center gap-1 font-inter">
-                <span className="material-symbols-outlined text-[12px]">lock</span>
-                Tidak dapat diubah
-              </p>
-            </div>
-
-            {/* Role (Read-only) */}
-            <div>
-              <label className="flex items-center gap-1.5 font-inter text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">
-                <span className="material-symbols-outlined text-[14px]">shield_person</span>
-                Role
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={profile.role}
-                  disabled
-                  className="w-full pl-10 pr-4 py-2.5 bg-surface-container-high border-transparent rounded-xl font-inter text-sm text-on-surface-variant cursor-not-allowed uppercase"
-                />
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-on-surface-variant/50">
-                  lock
-                </span>
-              </div>
-            </div>
-
-            {/* Full Name */}
-            <div>
-              <label className="flex items-center gap-1.5 font-inter text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">
-                <span className="material-symbols-outlined text-[14px]">person</span>
-                Nama Lengkap <span className="text-error normal-case tracking-normal">*</span>
-              </label>
-              <input
-                type="text"
-                value={form.full_name}
-                onChange={(e) => setForm({ ...form, full_name: e.target.value })}
-                placeholder="Nama lengkap Anda"
-                required
-                className="w-full px-4 py-2.5 bg-surface-container-lowest border border-outline-variant rounded-xl font-inter text-sm text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all shadow-sm"
-              />
-            </div>
-
-            {/* Username */}
-            <div>
-              <label className="flex items-center gap-1.5 font-inter text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">
-                <span className="material-symbols-outlined text-[14px]">alternate_email</span>
-                Username <span className="text-error normal-case tracking-normal">*</span>
-              </label>
-              <input
-                type="text"
-                value={form.username}
-                onChange={(e) => setForm({ ...form, username: e.target.value })}
-                placeholder="Username unik Anda"
-                required
-                className="w-full px-4 py-2.5 bg-surface-container-lowest border border-outline-variant rounded-xl font-inter text-sm text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all shadow-sm"
-              />
-            </div>
+      {/* Edit Address Modal */}
+      <ModalPortal open={editAddressOpen} onClose={() => setEditAddressOpen(false)}>
+        <div className="p-6 sm:p-10 w-full max-w-[700px] overflow-y-auto max-h-[90dvh] no-scrollbar">
+          <div className="mb-6 lg:mb-8">
+            <h4 className="text-2xl font-semibold text-gray-800 dark:text-white/90 mb-2">Ubah Alamat</h4>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Perbarui detail Anda agar profil tetap terkini.</p>
           </div>
-
-          {/* Metadata */}
-          <div className="mt-6 pt-5 border-t border-outline-variant flex flex-col sm:flex-row sm:items-center gap-3">
-            <div className="flex-1 flex flex-wrap items-center gap-3 sm:gap-4 text-xs text-outline font-inter">
-              <div className="flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-[14px]">calendar_today</span>
-                Bergabung: {new Date(profile.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
+          
+          <form onSubmit={handleSaveAddress} className="flex flex-col gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5">
+              <div>
+                <label className="block text-sm font-medium text-gray-800 dark:text-white/90 mb-2.5">Negara</label>
+                <input type="text" defaultValue="Indonesia" className="w-full px-4 py-3 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl text-sm text-gray-800 dark:text-white/90 focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none transition-all shadow-theme-xs" />
               </div>
-              <div className="flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-[14px]">schedule</span>
-                Diperbarui: {new Date(profile.updated_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
+              <div>
+                <label className="block text-sm font-medium text-gray-800 dark:text-white/90 mb-2.5">Kota/Provinsi</label>
+                <input type="text" defaultValue="Jakarta, ID." className="w-full px-4 py-3 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl text-sm text-gray-800 dark:text-white/90 focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none transition-all shadow-theme-xs" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-800 dark:text-white/90 mb-2.5">Kode Pos</label>
+                <input type="text" defaultValue="10110" className="w-full px-4 py-3 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl text-sm text-gray-800 dark:text-white/90 focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none transition-all shadow-theme-xs" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-800 dark:text-white/90 mb-2.5">NPWP</label>
+                <input type="text" defaultValue="AS4568384" className="w-full px-4 py-3 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl text-sm text-gray-800 dark:text-white/90 focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none transition-all shadow-theme-xs" />
               </div>
             </div>
-          </div>
+            
+            <div className="flex items-center justify-end gap-3 mt-4 pt-6 border-t border-gray-100 dark:border-gray-800">
+              <button type="button" onClick={() => setEditAddressOpen(false)} className="px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 dark:text-gray-300 dark:bg-gray-900 dark:border-gray-700 dark:hover:bg-gray-800 rounded-full transition-colors shadow-theme-xs">Tutup</button>
+              <button type="submit" disabled={saving} className="px-4 py-2.5 bg-brand-500 text-white rounded-full text-sm font-medium hover:bg-brand-600 transition-colors disabled:opacity-50 shadow-theme-xs">{saving ? "Menyimpan..." : "Simpan Perubahan"}</button>
+            </div>
+          </form>
+        </div>
+      </ModalPortal>
 
-          {/* Actions */}
-          <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 mt-6">
-            <button
-              type="button"
-              onClick={() => setForm({ 
-                full_name: profile.full_name?.replace(/\s*\(.*?\)\s*/g, '') || "", 
-                username: profile.username || "" 
-              })}
-              className="px-5 py-2.5 border border-outline-variant rounded-xl font-inter text-sm font-semibold text-on-surface-variant hover:bg-surface-container-low transition-colors"
-            >
-              Reset
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="px-6 py-2.5 bg-primary text-on-primary rounded-xl font-inter text-sm font-semibold hover:opacity-90 transition-all disabled:opacity-50 flex items-center justify-center gap-2 active:scale-[0.98]"
-            >
-              {saving ? (
-                <><span className="material-symbols-outlined animate-spin text-[18px]">progress_activity</span>Menyimpan...</>
-              ) : (
-                <><span className="material-symbols-outlined text-[18px]">save</span>Simpan Perubahan</>
-              )}
-            </button>
+      {/* Edit Security Modal */}
+      <ModalPortal open={editSecurityOpen} onClose={() => setEditSecurityOpen(false)}>
+        <div className="p-6 sm:p-10 w-full max-w-[700px] overflow-y-auto max-h-[90dvh] no-scrollbar">
+          <div className="mb-6 lg:mb-8">
+            <h4 className="text-2xl font-semibold text-gray-800 dark:text-white/90 mb-2">Ubah Keamanan</h4>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Perbarui detail Anda agar profil tetap terkini.</p>
           </div>
-        </form>
-      </div>
+          
+          <form onSubmit={handleSaveSecurity} className="flex flex-col gap-6">
+            <div className="grid grid-cols-1 gap-y-5">
+              <div>
+                <label className="block text-sm font-medium text-gray-800 dark:text-white/90 mb-2.5">Kata Sandi Saat Ini</label>
+                <input type="password" placeholder="••••••••••" className="w-full px-4 py-3 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl text-sm text-gray-800 dark:text-white/90 focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none transition-all shadow-theme-xs" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-800 dark:text-white/90 mb-2.5">Kata Sandi Baru</label>
+                <input type="password" placeholder="Masukkan kata sandi baru" className="w-full px-4 py-3 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl text-sm text-gray-800 dark:text-white/90 focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none transition-all shadow-theme-xs" />
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-end gap-3 mt-4 pt-6 border-t border-gray-100 dark:border-gray-800">
+              <button type="button" onClick={() => setEditSecurityOpen(false)} className="px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 dark:text-gray-300 dark:bg-gray-900 dark:border-gray-700 dark:hover:bg-gray-800 rounded-full transition-colors shadow-theme-xs">Tutup</button>
+              <button type="submit" disabled={saving} className="px-4 py-2.5 bg-brand-500 text-white rounded-full text-sm font-medium hover:bg-brand-600 transition-colors disabled:opacity-50 shadow-theme-xs">{saving ? "Menyimpan..." : "Simpan Perubahan"}</button>
+            </div>
+          </form>
+        </div>
+      </ModalPortal>
+
     </div>
   );
 }

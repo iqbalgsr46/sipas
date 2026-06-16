@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 interface ModalProps {
@@ -22,6 +22,12 @@ export default function ModalPortal({
   children,
 }: ModalProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
+
+  // Only render portal after mount (SSR-safe)
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Escape key to close
   useEffect(() => {
@@ -43,24 +49,12 @@ export default function ModalPortal({
     };
   }, [open]);
 
-  if (!open || typeof document === "undefined") return null;
+  if (!open || !mounted) return null;
 
   return createPortal(
     <div
       ref={overlayRef}
-      className="animate-overlay-in"
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 9999,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "16px",
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
-        backdropFilter: "blur(4px)",
-        WebkitBackdropFilter: "blur(4px)",
-      }}
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-gray-900/50 dark:bg-gray-900/80 backdrop-blur-sm animate-in fade-in"
       onClick={(e) => {
         if (e.target === overlayRef.current && !locked) onClose();
       }}
@@ -68,22 +62,21 @@ export default function ModalPortal({
       aria-modal="true"
     >
       <div
-        className="animate-modal-in"
-        style={{
-          position: "relative",
-          width: "100%",
-          maxWidth: "520px",
-          maxHeight: "90dvh",
-          display: "flex",
-          flexDirection: "column",
-          backgroundColor: "var(--color-surface-container-lowest)",
-          borderRadius: "16px",
-          border: "1px solid var(--color-outline-variant)",
-          boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
-          overflow: "hidden",
-        }}
+        className="relative w-full max-w-[700px] max-h-[90dvh] flex flex-col bg-white dark:bg-gray-900 rounded-3xl border border-gray-200 dark:border-gray-800 shadow-theme-xl overflow-hidden animate-modal-in"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* X Close Button */}
+        {!locked && (
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 z-10 w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+            aria-label="Tutup"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 6 6 18M6 6l12 12"/>
+            </svg>
+          </button>
+        )}
         {children}
       </div>
     </div>,

@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import StatusBadge from "@/components/StatusBadge";
 import { SparklesText } from "@/components/ui/sparkles-text";
+import RealtimeChart from "@/components/RealtimeChart";
 
 interface DashboardStats {
   totalMasuk: number;
@@ -94,34 +95,6 @@ export default function DashboardPage() {
     }
   }
 
-  const getStatusStyle = (status: string) => {
-    const map: Record<string, string> = {
-      belum_dibaca: "bg-surface-variant text-on-surface-variant",
-      diproses: "bg-secondary-container text-on-secondary-container",
-      selesai: "bg-primary-container text-on-primary-container",
-      draft: "bg-surface-container-high text-on-surface-variant",
-      menunggu_approval: "bg-tertiary-container text-on-tertiary-container",
-      diajukan: "bg-tertiary-container text-on-tertiary-container",
-      disetujui: "bg-primary-container text-on-primary-container",
-      ditolak: "bg-error-container text-on-error-container",
-    };
-    return map[status] || "bg-surface-variant text-on-surface-variant";
-  };
-
-  const getStatusLabel = (status: string) => {
-    const map: Record<string, string> = {
-      belum_dibaca: "Belum Dibaca",
-      diproses: "Diproses",
-      selesai: "Selesai",
-      draft: "Draft",
-      menunggu_approval: "Menunggu Approval",
-      diajukan: "Diajukan",
-      disetujui: "Disetujui",
-      ditolak: "Ditolak",
-    };
-    return map[status] || status;
-  };
-
   // Greeting berdasarkan waktu
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -134,225 +107,218 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center h-64 gap-3">
-        <span className="material-symbols-outlined animate-spin text-primary text-[40px]">
+        <span className="material-symbols-outlined animate-spin text-brand-500 text-[40px]">
           progress_activity
         </span>
-        <p className="font-inter text-sm text-on-surface-variant">Memuat dashboard...</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">Memuat dashboard...</p>
       </div>
     );
   }
 
-  const statsCards = [
-    {
-      label: "Surat Masuk",
-      value: stats.totalMasuk,
-      icon: "mail", // icon amplop
-      color: "bg-[#dcfce7]", // hijau pastel cerah
-      iconColor: "text-[#10b981]", // hijau solid
-      href: "/surat-masuk",
-    },
-    {
-      label: "Surat Keluar",
-      value: stats.totalKeluar,
-      icon: "send", // icon pesawat kertas (kirim)
-      color: "bg-[#e0f2fe]", // biru pastel cerah
-      iconColor: "text-[#3b82f6]", // biru solid
-      href: "/surat-keluar",
-    },
-    {
-      label: "Menunggu Approval",
-      value: stats.pendingApproval,
-      icon: "pending_actions", // icon clipboard pending
-      color: "bg-[#f3e8ff]", // ungu pastel cerah
-      iconColor: "text-[#8b5cf6]", // ungu solid
-      href: "/approval",
-      highlight: stats.pendingApproval > 0,
-    },
-    {
-      label: "Total Pengguna",
-      value: stats.totalUsers,
-      icon: "group", // icon users
-      color: "bg-[#ffedd5]", // orange pastel cerah
-      iconColor: "text-[#f97316]", // orange solid
-      href: "/users",
-    }
-  ];
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="grid grid-cols-12 gap-4 md:gap-6">
       {/* Hero Greeting */}
-      <section className="relative bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 rounded-2xl p-8 shadow-lg overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute right-0 top-0 w-80 h-80 bg-white/20 rounded-full blur-3xl -translate-y-1/3 translate-x-1/4" />
-          <div className="absolute left-1/4 bottom-0 w-48 h-48 bg-white/20 rounded-full blur-2xl translate-y-1/2" />
-        </div>
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-3 mb-3">
-              <span className="material-symbols-outlined text-white/80 text-[28px]">
-                waving_hand
-              </span>
-              <span className="px-3 py-1 rounded-full bg-white/20 text-white text-xs font-bold uppercase tracking-widest font-inter">
-                {userRole}
-              </span>
+      <div className="col-span-12">
+        <section className="relative bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-[24px] p-8 shadow-sm overflow-hidden">
+          {/* Subtle lively background orbs */}
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute -right-10 -top-20 w-[400px] h-[400px] bg-brand-400/10 dark:bg-brand-500/10 rounded-full blur-3xl" />
+            <div className="absolute right-1/3 -bottom-32 w-[300px] h-[300px] bg-indigo-400/10 dark:bg-indigo-500/10 rounded-full blur-3xl" />
+          </div>
+          
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div>
+              <div className="flex items-center gap-3 mb-4">
+                <span className="material-symbols-outlined text-brand-500 text-[28px] origin-bottom-right hover:animate-wave">
+                  waving_hand
+                </span>
+                <span className="px-3 py-1 rounded-full bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400 text-xs font-bold uppercase tracking-widest border border-brand-100 dark:border-brand-500/20">
+                  {userRole}
+                </span>
+              </div>
+              <div>
+                <SparklesText 
+                  className="text-3xl md:text-[38px] font-extrabold text-slate-800 dark:text-white tracking-tight leading-tight inline-block"
+                  colors={{ first: "#465FFF", second: "#8b5cf6" }}
+                >
+                  {getGreeting()},{" "}
+                  <span className="text-brand-600 dark:text-brand-400">
+                    {userName.split(" ")[0]}
+                  </span>
+                </SparklesText>
+              </div>
+              <div className="flex flex-col md:flex-row md:items-center md:flex-wrap gap-2 md:gap-3 mt-4">
+                <p className="text-[15px] text-slate-500 dark:text-slate-400 font-medium">
+                  Berikut ringkasan operasional harian Anda.
+                </p>
+                {stats.pendingApproval > 0 && (
+                  <span className="inline-flex w-fit items-center gap-1.5 px-3 py-1 rounded-full bg-error-50 text-error-600 dark:bg-error-500/10 dark:text-error-400 text-sm font-bold whitespace-nowrap border border-error-200 dark:border-error-500/20">
+                    <span className="material-symbols-outlined text-[16px]">priority_high</span>
+                    {stats.pendingApproval} item menunggu tindakan
+                  </span>
+                )}
+              </div>
             </div>
-            <div className="font-public-sans">
-              <SparklesText 
-                className="text-3xl md:text-4xl font-bold text-white tracking-tight leading-tight inline-block"
-                colors={{ first: "#fcd34d", second: "#fef08a" }}
+            <div className="flex flex-wrap md:flex-nowrap gap-3 mt-4 md:mt-0">
+              <Link
+                href="/surat-masuk"
+                className="flex items-center gap-2 px-6 py-3 bg-brand-600 text-white text-sm font-semibold rounded-xl shadow-theme-sm hover:shadow-theme-md hover:bg-brand-700 transition-all dark:bg-brand-500 dark:hover:bg-brand-600"
               >
-                {getGreeting()},{" "}
-                <span className="text-blue-200">
-                  {userName.split(" ")[0]}
-                </span>
-              </SparklesText>
-            </div>
-            <div className="flex flex-col md:flex-row md:items-center md:flex-wrap gap-2 md:gap-3 mt-3 md:mt-2">
-              <p className="font-inter text-sm md:text-base text-white/90 leading-relaxed md:leading-normal">
-                Berikut ringkasan operasional harian Anda.
-              </p>
-              {stats.pendingApproval > 0 && (
-                <span className="inline-flex w-fit items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-white text-sm font-semibold whitespace-nowrap">
-                  <span className="material-symbols-outlined text-[16px]">priority_high</span>
-                  {stats.pendingApproval} item menunggu tindakan
-                </span>
+                <span className="material-symbols-outlined text-[20px]">add</span>
+                Surat Baru
+              </Link>
+              {(userRole === "admin" || userRole === "pimpinan") && stats.pendingApproval > 0 && (
+                <Link
+                  href="/approval"
+                  className="flex items-center gap-2 px-6 py-3 bg-white text-slate-700 text-sm font-semibold rounded-xl hover:bg-slate-50 transition-all border border-slate-200 shadow-sm dark:bg-gray-800 dark:text-slate-200 dark:border-gray-700 dark:hover:bg-gray-700"
+                >
+                  <span className="material-symbols-outlined text-[20px]">task_alt</span>
+                  Review
+                </Link>
               )}
             </div>
           </div>
-          <div className="flex flex-wrap md:flex-nowrap gap-3 mt-4 md:mt-0">
-            <Link
-              href="/surat-masuk"
-              className="flex items-center gap-2 px-5 py-2.5 bg-white text-blue-700 font-inter text-sm font-semibold rounded-xl shadow-sm hover:shadow-md hover:bg-gray-50 transition-all"
-            >
-              <span className="material-symbols-outlined text-[20px]">add</span>
-              Surat Baru
-            </Link>
-            {(userRole === "admin" || userRole === "pimpinan") && stats.pendingApproval > 0 && (
-              <Link
-                href="/approval"
-                className="flex items-center gap-2 px-5 py-2.5 bg-white/20 text-white font-inter text-sm font-semibold rounded-xl hover:bg-white/30 transition-all"
-              >
-                <span className="material-symbols-outlined text-[20px]">task_alt</span>
-                Review
-              </Link>
-            )}
+        </section>
+      </div>
+
+      {/* Realtime Chart + Quick Summary */}
+      <div className="col-span-12 grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+        {/* Realtime Chart — spans 2 of 3 cols */}
+        <div className="lg:col-span-2">
+          <RealtimeChart />
+        </div>
+
+        {/* Quick Summary Card */}
+        <div className="lg:col-span-1 rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] p-5 md:p-6 flex flex-col gap-4">
+          <h3 className="text-base font-semibold text-gray-800 dark:text-white/90">Ringkasan Surat</h3>
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-800">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-[18px] text-blue-600 dark:text-blue-400">mail</span>
+                </div>
+                <span className="text-sm text-gray-600 dark:text-gray-400">Surat Masuk</span>
+              </div>
+              <span className="text-lg font-bold text-gray-800 dark:text-white/90">{stats.totalMasuk}</span>
+            </div>
+            <div className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-800">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-[18px] text-orange-600 dark:text-orange-400">send</span>
+                </div>
+                <span className="text-sm text-gray-600 dark:text-gray-400">Surat Keluar</span>
+              </div>
+              <span className="text-lg font-bold text-gray-800 dark:text-white/90">{stats.totalKeluar}</span>
+            </div>
+            <div className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-800">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-brand-50 dark:bg-brand-500/10 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-[18px] text-brand-600 dark:text-brand-400">pending_actions</span>
+                </div>
+                <span className="text-sm text-gray-600 dark:text-gray-400">Pending Approval</span>
+              </div>
+              <span className={`text-lg font-bold ${ stats.pendingApproval > 0 ? "text-error-500" : "text-gray-800 dark:text-white/90" }`}>{stats.pendingApproval}</span>
+            </div>
+            <div className="flex items-center justify-between py-3">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-green-50 dark:bg-green-500/10 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-[18px] text-green-600 dark:text-green-400">group</span>
+                </div>
+                <span className="text-sm text-gray-600 dark:text-gray-400">Total Pengguna</span>
+              </div>
+              <span className="text-lg font-bold text-gray-800 dark:text-white/90">{stats.totalUsers}</span>
+            </div>
           </div>
         </div>
-      </section>
-
-      {/* Statistics Cards */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {statsCards.map((card) => (
-          <Link
-            key={card.label}
-            href={card.href}
-            className={`rounded-2xl p-6 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 group cursor-pointer flex items-center justify-between ${card.color} ${
-              card.highlight ? "ring-2 ring-purple-400 ring-offset-2 ring-offset-surface" : ""
-            }`}
-          >
-            <div className="flex flex-col justify-center">
-              <span className="font-public-sans text-[40px] leading-none font-extrabold tracking-tight text-slate-900 mb-2">
-                {card.value}
-              </span>
-              <span className="font-inter text-sm font-medium text-slate-700">
-                {card.label}
-              </span>
-            </div>
-            <div className="flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-              <span 
-                className={`material-symbols-outlined icon-fill ${card.iconColor}`}
-                style={{ fontSize: "45px", lineHeight: 1 }}
-              >
-                {card.icon}
-              </span>
-            </div>
-          </Link>
-        ))}
-      </section>
+      </div>
 
       {/* Recent Activity */}
-      <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-sm overflow-hidden">
-        <div className="px-6 py-5 border-b border-outline-variant flex justify-between items-center">
-          <div>
-            <h3 className="font-public-sans text-lg font-semibold text-on-surface">
-              Aktivitas Terkini
-            </h3>
-            <p className="font-inter text-xs text-on-surface-variant mt-0.5">
-              5 dokumen terakhir yang diproses
-            </p>
+      <div className="col-span-12">
+        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white px-4 pb-3 pt-4 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6">
+          <div className="flex flex-col gap-2 mb-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
+                Aktivitas Terkini
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">5 dokumen terakhir yang diproses</p>
+            </div>
           </div>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-surface-container-low border-b border-outline-variant">
-                <th className="py-3 px-6 font-inter text-[11px] font-bold text-on-surface-variant uppercase tracking-widest">
-                  No. Surat
-                </th>
-                <th className="py-3 px-6 font-inter text-[11px] font-bold text-on-surface-variant uppercase tracking-widest">
-                  Tipe
-                </th>
-                <th className="py-3 px-6 font-inter text-[11px] font-bold text-on-surface-variant uppercase tracking-widest">
-                  Perihal
-                </th>
-                <th className="py-3 px-6 font-inter text-[11px] font-bold text-on-surface-variant uppercase tracking-widest">
-                  Tanggal
-                </th>
-                <th className="py-3 px-6 font-inter text-[11px] font-bold text-on-surface-variant uppercase tracking-widest">
-                  Status
-                </th>
-              </tr>
-            </thead>
-            <tbody className="font-inter text-sm text-on-surface divide-y divide-outline-variant">
-              {recentItems.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="py-16 px-6 text-center">
-                    <div className="flex flex-col items-center justify-center">
-                      <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-3 ring-1 ring-inset ring-slate-500/10 shadow-sm">
-                        <span className="material-symbols-outlined icon-fill text-[28px] text-slate-400">inbox</span>
-                      </div>
-                      <p className="font-inter text-sm font-medium text-slate-500">Belum ada aktivitas terkini.</p>
-                    </div>
-                  </td>
+          
+          <div className="max-w-full overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-gray-100 dark:border-gray-800 border-y">
+                  <th className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+                    No. Surat
+                  </th>
+                  <th className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+                    Tipe
+                  </th>
+                  <th className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+                    Perihal
+                  </th>
+                  <th className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+                    Tanggal
+                  </th>
+                  <th className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+                    Status
+                  </th>
                 </tr>
-              ) : (
-                recentItems.map((item) => (
-                  <tr key={item.id} className="hover:bg-surface-container-low transition-colors group">
-                    <td className="py-3.5 px-6 font-medium text-on-surface">{item.nomor_surat}</td>
-                    <td className="py-3.5 px-6">
-                      <div className="flex items-center gap-2">
-                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shadow-[0_1px_2px_0_rgba(0,0,0,0.03)] ring-1 ring-inset ${
-                          item.tipe === "masuk" 
-                            ? "bg-blue-50 text-blue-600 ring-blue-600/20 dark:bg-blue-500/10 dark:text-blue-400 dark:ring-blue-500/20" 
-                            : "bg-purple-50 text-purple-600 ring-purple-600/20 dark:bg-purple-500/10 dark:text-purple-400 dark:ring-purple-500/20"
-                        }`}>
-                          <span className="material-symbols-outlined icon-fill text-[16px]">
-                            {item.tipe === "masuk" ? "mark_email_unread" : "send"}
-                          </span>
+              </thead>
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                {recentItems.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="py-12 text-center">
+                      <div className="flex flex-col items-center justify-center">
+                        <div className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-3">
+                          <span className="material-symbols-outlined text-[24px] text-gray-400">inbox</span>
                         </div>
-                        <span className="text-on-surface-variant text-xs font-bold uppercase tracking-wider">
-                          {item.tipe === "masuk" ? "Masuk" : "Keluar"}
-                        </span>
+                        <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Belum ada aktivitas terkini.</p>
                       </div>
-                    </td>
-                    <td className="py-3.5 px-6 text-on-surface-variant max-w-[250px] truncate">
-                      {item.perihal}
-                    </td>
-                    <td className="py-3.5 px-6 text-on-surface-variant text-xs">
-                      {new Date(item.tanggal).toLocaleDateString("id-ID", {
-                        day: "numeric", month: "short", year: "numeric",
-                      })}
-                    </td>
-                    <td className="py-3.5 px-6">
-                      <StatusBadge status={item.status} />
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : (
+                  recentItems.map((item) => (
+                    <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-white/[0.03] transition-colors">
+                      <td className="py-3 text-gray-800 text-theme-sm dark:text-white/90 font-medium">
+                        {item.nomor_surat}
+                      </td>
+                      <td className="py-3">
+                        <div className="flex items-center gap-2">
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                            item.tipe === "masuk" 
+                              ? "bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400" 
+                              : "bg-orange-50 text-orange-600 dark:bg-orange-500/10 dark:text-orange-400"
+                          }`}>
+                            <span className="material-symbols-outlined text-[16px]">
+                              {item.tipe === "masuk" ? "mark_email_unread" : "send"}
+                            </span>
+                          </div>
+                          <span className="text-gray-600 dark:text-gray-400 text-theme-xs font-semibold uppercase tracking-wider">
+                            {item.tipe === "masuk" ? "Masuk" : "Keluar"}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="py-3 text-gray-500 text-theme-sm dark:text-gray-400 max-w-[250px] truncate">
+                        {item.perihal}
+                      </td>
+                      <td className="py-3 text-gray-500 text-theme-sm dark:text-gray-400">
+                        {new Date(item.tanggal).toLocaleDateString("id-ID", {
+                          day: "numeric", month: "short", year: "numeric",
+                        })}
+                      </td>
+                      <td className="py-3">
+                        <StatusBadge status={item.status} />
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </section>
+      </div>
     </div>
   );
 }

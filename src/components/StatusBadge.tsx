@@ -2,7 +2,7 @@
  * StatusBadge Component
  * =====================
  * Komponen reusable untuk menampilkan status surat
- * dengan warna dan ikon yang sesuai.
+ * dengan gaya minimalis (tanpa border, tanpa ikon).
  */
 
 interface StatusBadgeProps {
@@ -10,76 +10,60 @@ interface StatusBadgeProps {
 }
 
 // Konfigurasi warna untuk setiap status
-const statusConfig: Record<
-  string,
-  { bg: string; icon: string; label: string }
-> = {
+const statusConfig: Record<string, { bg: string; label: string }> = {
   // Surat Masuk
   belum_dibaca: {
-    bg: "bg-rose-50 text-rose-600 ring-rose-600/20 dark:bg-rose-500/10 dark:text-rose-400 dark:ring-rose-500/20",
-    icon: "mark_email_unread",
+    bg: "bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400",
     label: "Belum Dibaca",
   },
   diproses: {
-    bg: "bg-blue-50 text-blue-600 ring-blue-600/20 dark:bg-blue-500/10 dark:text-blue-400 dark:ring-blue-500/20",
-    icon: "pending",
+    bg: "bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400",
     label: "Diproses",
   },
   selesai: {
-    bg: "bg-emerald-50 text-emerald-600 ring-emerald-600/20 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-500/20",
-    icon: "check_circle",
+    bg: "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400",
     label: "Selesai",
   },
 
   // Surat Keluar
   draft: {
-    bg: "bg-slate-100 text-slate-600 ring-slate-600/20 dark:bg-slate-500/10 dark:text-slate-400 dark:ring-slate-500/20",
-    icon: "edit_document",
+    bg: "bg-slate-100 text-slate-600 dark:bg-slate-500/10 dark:text-slate-400",
     label: "Draft",
   },
   diajukan: {
-    bg: "bg-amber-50 text-amber-700 ring-amber-600/20 dark:bg-amber-500/10 dark:text-amber-400 dark:ring-amber-500/20",
-    icon: "pending_actions",
+    bg: "bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400",
     label: "Diajukan",
   },
   disetujui: {
-    bg: "bg-emerald-50 text-emerald-600 ring-emerald-600/20 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-500/20",
-    icon: "check_circle",
+    bg: "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400",
     label: "Disetujui",
   },
   ditolak: {
-    bg: "bg-rose-50 text-rose-600 ring-rose-600/20 dark:bg-rose-500/10 dark:text-rose-400 dark:ring-rose-500/20",
-    icon: "cancel",
+    bg: "bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400",
     label: "Ditolak",
   },
 
   // User
   aktif: {
-    bg: "bg-emerald-50 text-emerald-600 ring-emerald-600/20 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-500/20",
-    icon: "check",
+    bg: "bg-success-50 text-success-600 dark:bg-success-500/10 dark:text-success-400",
     label: "Aktif",
   },
   nonaktif: {
-    bg: "bg-slate-100 text-slate-600 ring-slate-600/20 dark:bg-slate-500/10 dark:text-slate-400 dark:ring-slate-500/20",
-    icon: "block",
+    bg: "bg-error-50 text-error-600 dark:bg-error-500/10 dark:text-error-400",
     label: "Non-aktif",
   },
 };
 
 export default function StatusBadge({ status }: StatusBadgeProps) {
   const config = statusConfig[status] || {
-    bg: "bg-slate-100 text-slate-600 ring-slate-600/20 dark:bg-slate-500/10 dark:text-slate-400 dark:ring-slate-500/20",
-    icon: "help",
+    bg: "bg-slate-100 text-slate-600 dark:bg-slate-500/10 dark:text-slate-400",
     label: status,
   };
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-widest ring-1 ring-inset ${config.bg} shadow-[0_1px_2px_0_rgba(0,0,0,0.03)]`}
+      className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${config.bg}`}
     >
-      <span className="material-symbols-outlined icon-fill text-[15px]">
-        {config.icon}
-      </span>
       {config.label}
     </span>
   );
