@@ -17,7 +17,9 @@ export async function GET(req: Request) {
     }, { status: 400 });
   }
 
-  const webhookUrl = `${siteUrl}/api/telegram`;
+  // Hilangkan trailing slash dari siteUrl jika ada
+  const cleanSiteUrl = siteUrl.replace(/\/$/, '');
+  const webhookUrl = `${cleanSiteUrl}/api/telegram`;
 
   const res = await fetch(
     `https://api.telegram.org/bot${token}/setWebhook`,
