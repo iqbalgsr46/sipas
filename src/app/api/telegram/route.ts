@@ -108,24 +108,46 @@ async function runAI(
         maxSteps: 5,
       } as any);
 
-      // Log RAW result untuk debugging
+      // Log RAW result untuk debugging (safe stringify to avoid circular refs)
       console.log(`[TG Bot] ${modelName} RAW result object keys:`, Object.keys(result));
-      console.log(`[TG Bot] ${modelName} RAW result (full):`, JSON.stringify(result, null, 2).substring(0, 1000));
+      
+      try {
+        const safeResult = {
+          text: result.text,
+          textLength: result.text?.length,
+          toolCallsCount: result.toolCalls?.length,
+          toolResultsCount: result.toolResults?.length,
+          stepsCount: result.steps?.length
+        };
+        console.log(`[TG Bot] ${modelName} RAW result (safe):`, JSON.stringify(safeResult, null, 2));
+      } catch (stringifyErr) {
+        console.warn(`[TG Bot] Could not stringify result:`, stringifyErr);
+      }
 
       console.log(`[TG Bot] ${modelName} result:`, JSON.stringify({
         text: result.text?.substring(0, 100) || "(empty)",
         textLength: result.text?.length || 0,
         toolCallsCount: result.toolCalls?.length || 0,
         toolResultsCount: result.toolResults?.length || 0,
-        steps: result.steps?.length || 0,
-        responseMessages: result.responseMessages?.length || 0
+        steps: result.steps?.length || 0
       }));
 
       // Log semua tool results untuk debugging
       if (result.toolResults && result.toolResults.length > 0) {
         console.log(`[TG Bot] Total tool results: ${result.toolResults.length}`);
         result.toolResults.forEach((tr: any, idx: number) => {
-          console.log(`[TG Bot] Tool result ${idx} RAW:`, JSON.stringify(tr).substring(0, 500));
+          try {
+            const safeTr = {
+              toolName: tr.toolName,
+              toolCallId: tr.toolCallId,
+              args: tr.args,
+              hasResult: !!tr.result
+            };
+            console.log(`[TG Bot] Tool result ${idx} RAW:`, JSON.stringify(safeTr));
+          } catch (err) {
+            console.warn(`[TG Bot] Could not stringify tool result ${idx}`);
+          }
+          
           console.log(`[TG Bot] Tool result ${idx} details:`, {
             toolName: tr.toolName,
             hasResult: !!tr.result,
