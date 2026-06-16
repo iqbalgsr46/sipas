@@ -137,7 +137,7 @@ export default function AiAssistantPage() {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [selectedModel, setSelectedModel] = useState<"gemini" | "deepseek">("gemini");
+  const [selectedModel, setSelectedModel] = useState<"gemini" | "deepseek" | "nvidia">("gemini");
   const [showModelPicker, setShowModelPicker] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -452,6 +452,8 @@ export default function AiAssistantPage() {
                       className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11.5px] font-semibold transition-all border ${
                         selectedModel === "deepseek"
                           ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-700 hover:bg-blue-100 dark:hover:bg-blue-900/40"
+                          : selectedModel === "nvidia"
+                          ? "bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border-green-200 dark:border-green-700 hover:bg-green-100 dark:hover:bg-green-900/40"
                           : "bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-700 hover:bg-purple-100 dark:hover:bg-purple-900/40"
                       }`}
                     >
@@ -459,12 +461,17 @@ export default function AiAssistantPage() {
                         <svg width="14" height="14" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <path d="M33.4671 19.2359C33.2879 19.1108 33.0627 19.0706 32.8502 19.1257C31.5862 19.4663 30.2469 19.2844 29.1197 18.622C28.8108 18.4392 28.4253 18.4784 28.1599 18.7197C27.4197 19.4001 26.9997 20.3601 26.9997 21.3734C26.9997 22.1467 27.2505 22.8867 27.7119 23.4934L22.5253 29.5467C21.9944 29.1759 21.3558 28.9733 20.6972 28.9733C20.3021 28.9733 19.9164 29.0466 19.5557 29.1866L15.8379 22.9867C16.1261 22.4934 16.2663 21.9267 16.2663 21.3467C16.2663 19.5199 14.7797 18.0266 12.9663 18.0266C11.1529 18.0266 9.66634 19.5199 9.66634 21.3467C9.66634 23.1734 11.1529 24.6667 12.9663 24.6667C13.3851 24.6667 13.7901 24.5867 14.1637 24.4401L17.8637 30.6134C17.5357 31.1334 17.3597 31.7334 17.3597 32.3601C17.3597 34.1867 18.8463 35.6801 20.6597 35.6801C22.4731 35.6801 23.9597 34.1867 23.9597 32.3601C23.9597 31.8667 23.8464 31.3867 23.6331 30.9601L28.7931 24.9334C29.3573 25.2134 29.9863 25.3601 30.6263 25.3601C31.213 25.3601 31.7863 25.2401 32.313 25.0134L35.2263 28.9334C34.7597 29.4267 34.493 30.08 34.493 30.7734C34.493 32.3467 35.773 33.6267 37.3464 33.6267C38.9197 33.6267 40.1997 32.3467 40.1997 30.7734C40.1997 29.2001 38.9197 27.9201 37.3464 27.9201C37.1064 27.9201 36.873 27.9467 36.6464 28.0001L33.7464 24.0934C34.2663 23.4534 34.5597 22.6401 34.5597 21.7867C34.5597 20.8534 34.2263 19.9601 33.6131 19.2734L33.4671 19.2359Z" fill="currentColor"/>
                         </svg>
+                      ) : selectedModel === "nvidia" ? (
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M12.75 3.5V20.5L4.5 16V8L12.75 3.5Z" fill="#76B900"/>
+                          <path d="M19.5 8V16L12.75 20.5V3.5L19.5 8Z" fill="#76B900" opacity="0.7"/>
+                        </svg>
                       ) : (
                         <svg width="14" height="14" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <path d="M14 28C14 26.0633 13.6267 24.2433 12.88 22.54C12.1567 20.8367 11.165 19.355 9.905 18.095C8.645 16.835 7.16333 15.8433 5.46 15.12C3.75667 14.3733 1.93667 14 0 14C1.93667 14 3.75667 13.6383 5.46 12.915C7.16333 12.1683 8.645 11.165 9.905 9.905C11.165 8.645 12.1567 7.16333 12.88 5.46C13.6267 3.75667 14 1.93667 14 0C14 1.93667 14.3617 3.75667 15.085 5.46C15.8317 7.16333 16.835 8.645 18.095 9.905C19.355 11.165 20.8367 12.1683 22.54 12.915C24.2433 13.6383 26.0633 14 28 14C26.0633 14 24.2433 14.3733 22.54 15.12C20.8367 15.8433 19.355 16.835 18.095 18.095C16.835 19.355 15.8317 20.8367 15.085 22.54C14.3617 24.2433 14 26.0633 14 28Z" fill="currentColor"/>
                         </svg>
                       )}
-                      {selectedModel === "deepseek" ? "DeepSeek Chat" : "Gemini 2.5 Flash"}
+                      {selectedModel === "deepseek" ? "DeepSeek Chat" : selectedModel === "nvidia" ? "NVIDIA Llama 3.1" : "Gemini 2.5 Flash"}
                       <span className="material-symbols-outlined text-[14px]">expand_more</span>
                     </button>
 
@@ -517,8 +524,27 @@ export default function AiAssistantPage() {
                             </div>
                             {selectedModel === "deepseek" && <span className="material-symbols-outlined text-[16px] text-blue-500 ml-auto">check_circle</span>}
                           </button>
+                          <button
+                            onClick={() => { setSelectedModel("nvidia"); setShowModelPicker(false); }}
+                            className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors ${
+                              selectedModel === "nvidia" ? "bg-green-50 dark:bg-green-900/20" : ""
+                            }`}
+                          >
+                            <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 overflow-hidden bg-[#76B900]">
+                              {/* NVIDIA logo */}
+                              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12.75 3.5V20.5L4.5 16V8L12.75 3.5Z" fill="white"/>
+                                <path d="M19.5 8V16L12.75 20.5V3.5L19.5 8Z" fill="white" opacity="0.7"/>
+                              </svg>
+                            </div>
+                            <div>
+                              <p className="text-[12.5px] font-semibold text-slate-800 dark:text-slate-200">NVIDIA Llama 3.1 70B</p>
+                              <p className="text-[10.5px] text-slate-400">NVIDIA · Gratis tanpa limit</p>
+                            </div>
+                            {selectedModel === "nvidia" && <span className="material-symbols-outlined text-[16px] text-green-500 ml-auto">check_circle</span>}
+                          </button>
                           <div className="px-4 py-2.5 border-t border-slate-100 dark:border-slate-800">
-                            <p className="text-[10px] text-slate-400 leading-relaxed">Gemini akan otomatis beralih ke DeepSeek jika terkena limit.</p>
+                            <p className="text-[10px] text-slate-400 leading-relaxed">Sistem otomatis beralih: Gemini → DeepSeek → NVIDIA → OpenRouter jika ada yang limit.</p>
                           </div>
                         </div>
                       </>

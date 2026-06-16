@@ -16,6 +16,12 @@ const openrouter = createOpenAI({
   },
 });
 
+// NVIDIA NIM API client — FREE and NO LIMIT
+const nvidia = createOpenAI({
+  baseURL: "https://integrate.api.nvidia.com/v1",
+  apiKey: process.env.NVIDIA_API_KEY ?? "",
+});
+
 // Allow responses up to 60 seconds
 export const maxDuration = 60;
 
@@ -107,6 +113,7 @@ export async function POST(req: Request) {
     let usedModel = requestedModel;
 
     const openrouterKey = process.env.OPENROUTER_API_KEY;
+    const nvidiaKey = process.env.NVIDIA_API_KEY;
 
     // Helper: apakah error ini termasuk quota/rate-limit/billing?
     const isRecoverableError = (msg: string) =>
@@ -125,6 +132,9 @@ export async function POST(req: Request) {
       if (requestedModel === "deepseek") {
         if (!deepseekKey) throw new Error("DEEPSEEK_API_KEY belum dikonfigurasi.");
         text = await runAI(deepseek("deepseek-chat"), systemPrompt, messages, aiTools);
+      } else if (requestedModel === "nvidia") {
+        if (!nvidiaKey) throw new Error("NVIDIA_API_KEY belum dikonfigurasi.");
+        text = await runAI(nvidia("meta/llama-3.1-70b-instruct"), systemPrompt, messages, aiTools);
       } else {
         // default: gemini
         if (!googleKey) throw new Error("GOOGLE_GENERATIVE_AI_API_KEY belum dikonfigurasi.");
@@ -144,8 +154,44 @@ export async function POST(req: Request) {
           const deepseekErrMsg: string = deepseekErr?.message || String(deepseekErr);
           console.warn(`[AI] DeepSeek fallback failed: ${deepseekErrMsg}`);
 
-          // ── Fallback 2: DeepSeek gagal → coba OpenRouter ──────────────────
-          if (openrouterKey) {
+          // ── Fallback 2: DeepSeek gagal → coba NVIDIA ──────────────────────
+          if (nvidiaKey) {
+            console.log("[AI] DeepSeek failed — falling back to NVIDIA...");
+            usedModel = "nvidia-fallback";
+            try {
+              text = await runAI(
+                nvidia("meta/llama-3.1-70b-instruct"),
+                systemPrompt,
+                messages,
+                aiTools
+              );
+            } catch (nvidiaErr: any) {
+              const nvidiaErrMsg: string = nvidiaErr?.message || String(nvidiaErr);
+              console.warn(`[AI] NVIDIA fallback failed: ${nvidiaErrMsg}`);
+
+              // ── Fallback 3: NVIDIA gagal → coba OpenRouter ────────────────
+              if (openrouterKey) {
+                console.log("[AI] NVIDIA failed — falling back to OpenRouter...");
+                usedModel = "openrouter-fallback";
+                try {
+                  text = await runAI(
+                    openrouter("openrouter/free"),
+                    systemPrompt,
+                    messages,
+                    aiTools
+                  );
+                } catch (openrouterErr: any) {
+                  throw new Error(
+                    `Semua provider gagal. Gemini: ${primaryErrMsg} | DeepSeek: ${deepseekErrMsg} | NVIDIA: ${nvidiaErrMsg} | OpenRouter: ${openrouterErr.message}`
+                  );
+                }
+              } else {
+                throw new Error(
+                  `Gemini, DeepSeek, dan NVIDIA gagal: ${nvidiaErrMsg}`
+                );
+              }
+            }
+          } else if (openrouterKey) {
             console.log("[AI] DeepSeek failed — falling back to OpenRouter...");
             usedModel = "openrouter-fallback";
             try {
@@ -167,8 +213,44 @@ export async function POST(req: Request) {
           }
         }
       } else {
-        // ── Fallback langsung ke OpenRouter jika model lain gagal ────────────
-        if (openrouterKey && isRecoverableError(primaryErrMsg)) {
+        // ── Fallback langsung ke NVIDIA atau OpenRouter jika model lain gagal ────
+        if (nvidiaKey && isRecoverableError(primaryErrMsg)) {
+          console.log(`[AI] ${requestedModel} failed — falling back to NVIDIA...`);
+          usedModel = "nvidia-fallback";
+          try {
+            text = await runAI(
+              nvidia("meta/llama-3.1-70b-instruct"),
+              systemPrompt,
+              messages,
+              aiTools
+            );
+          } catch (nvidiaErr: any) {
+            const nvidiaErrMsg: string = nvidiaErr?.message || String(nvidiaErr);
+            console.warn(`[AI] NVIDIA fallback failed: ${nvidiaErrMsg}`);
+            
+            // Try OpenRouter as last resort
+            if (openrouterKey) {
+              console.log(`[AI] NVIDIA failed — falling back to OpenRouter...`);
+              usedModel = "openrouter-fallback";
+              try {
+                text = await runAI(
+                  openrouter("openrouter/free"),
+                  systemPrompt,
+                  messages,
+                  aiTools
+                );
+              } catch (openrouterErr: any) {
+                throw new Error(
+                  `${requestedModel} gagal, NVIDIA gagal, dan OpenRouter juga gagal: ${openrouterErr.message}`
+                );
+              }
+            } else {
+              throw new Error(
+                `${requestedModel} gagal & NVIDIA juga gagal: ${nvidiaErrMsg}`
+              );
+            }
+          }
+        } else if (openrouterKey && isRecoverableError(primaryErrMsg)) {
           console.log(`[AI] ${requestedModel} failed — falling back to OpenRouter...`);
           usedModel = "openrouter-fallback";
           try {
@@ -196,8 +278,10 @@ export async function POST(req: Request) {
     // Append note when auto-fallback is used
     if (usedModel === "deepseek-fallback") {
       text += "\n\n*⚡ Dialihkan ke DeepSeek (Gemini sedang kena limit)*";
+    } else if (usedModel === "nvidia-fallback") {
+      text += "\n\n*⚡ Dialihkan ke NVIDIA Llama (provider utama tidak tersedia)*";
     } else if (usedModel === "openrouter-fallback") {
-      text += "\n\n*⚡ Dialihkan ke OpenRouter / Llama (provider utama tidak tersedia)*";
+      text += "\n\n*⚡ Dialihkan ke OpenRouter (semua provider lain tidak tersedia)*";
     }
 
     // Stream response back

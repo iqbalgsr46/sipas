@@ -19,6 +19,12 @@ const openrouter = createOpenAI({
   },
 });
 
+// NVIDIA NIM API client
+const nvidia = createOpenAI({
+  baseURL: "https://integrate.api.nvidia.com/v1",
+  apiKey: process.env.NVIDIA_API_KEY ?? "",
+});
+
 // Escape markdown characters untuk Telegram
 function escapeMarkdown(text: string): string {
   // Karakter yang perlu di-escape untuk MarkdownV2
@@ -89,6 +95,7 @@ async function runAI(
   const googleKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
   const deepseekKey = process.env.DEEPSEEK_API_KEY;
   const openrouterKey = process.env.OPENROUTER_API_KEY;
+  const nvidiaKey = process.env.NVIDIA_API_KEY;
 
   const isRecoverableError = (msg: string) =>
     msg.includes("quota") || msg.includes("429") ||
@@ -294,8 +301,29 @@ async function runAI(
         console.error("[TG Bot] DeepSeek failed:", e2?.message);
         console.error("[TG Bot] DeepSeek error stack:", e2?.stack);
 
-        // Fallback 2 → OpenRouter
-        if (openrouterKey) {
+        // Fallback 2 → NVIDIA
+        if (nvidiaKey) {
+          try {
+            const text = await call(nvidia("meta/llama-3.1-70b-instruct"), "NVIDIA");
+            if (text) return text + "\n\n_⚡ via NVIDIA Llama_";
+          } catch (e3: any) {
+            console.error("[TG Bot] NVIDIA failed:", e3?.message);
+            console.error("[TG Bot] NVIDIA error stack:", e3?.stack);
+
+            // Fallback 3 → OpenRouter
+            if (openrouterKey) {
+              try {
+                const text = await call(openrouter("openrouter/free"), "OpenRouter");
+                if (text) return text + "\n\n_⚡ via OpenRouter_";
+              } catch (e4: any) {
+                console.error("[TG Bot] OpenRouter failed:", e4?.message);
+                throw new Error(`Semua AI gagal: ${e4?.message}`);
+              }
+            } else {
+              throw new Error(`Gemini, DeepSeek & NVIDIA gagal, OpenRouter key tidak ada`);
+            }
+          }
+        } else if (openrouterKey) {
           try {
             const text = await call(openrouter("openrouter/free"), "OpenRouter");
             if (text) return text + "\n\n_⚡ via OpenRouter_";
@@ -304,7 +332,7 @@ async function runAI(
             throw new Error(`Semua AI gagal: ${e3?.message}`);
           }
         } else {
-          throw new Error(`Gemini & DeepSeek gagal, OpenRouter key tidak ada`);
+          throw new Error(`Gemini & DeepSeek gagal, NVIDIA & OpenRouter key tidak ada`);
         }
       }
     } else {
