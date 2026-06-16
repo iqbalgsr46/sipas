@@ -27,9 +27,10 @@ graph TD
     end
 
     subgraph "AI Providers"
-        GEMINI[Google Gemini<br/>Primary]
-        DEEPSEEK[DeepSeek<br/>Fallback 1]
-        OPENROUTER[OpenRouter<br/>Fallback 2]
+        NVIDIA[NVIDIA NIM<br/>Primary - FREE]
+        GEMINI[Google Gemini<br/>Fallback 1]
+        DEEPSEEK[DeepSeek<br/>Fallback 2]
+        OPENROUTER[OpenRouter<br/>Fallback 3]
     end
 
     subgraph "External Services"
@@ -56,10 +57,12 @@ graph TD
     State --> API_USERS
 
     %% API to Services
-    API_AI --> GEMINI
+    API_AI --> NVIDIA
+    API_AI -.-> GEMINI
     API_AI -.-> DEEPSEEK
     API_AI -.-> OPENROUTER
-    API_TG --> GEMINI
+    API_TG --> NVIDIA
+    API_TG -.-> GEMINI
     API_TG -.-> DEEPSEEK
     API_TG -.-> OPENROUTER
 
@@ -86,7 +89,7 @@ graph TD
 
     class WEB,TG,UI primary
     class API_AI,API_TG,API_USERS secondary
-    class GEMINI,DEEPSEEK,OPENROUTER,TG_API external
+    class NVIDIA,GEMINI,DEEPSEEK,OPENROUTER,TG_API external
     class SB_DB,SB_STORAGE storage
 ```
 
@@ -117,15 +120,27 @@ Berjalan di **Vercel Edge Functions**:
 | `/api/users` | Create new users | ✅ Yes (admin only) |
 
 ### 4. **AI Providers**
-Multi-provider dengan **automatic fallback**:
-1. **Gemini 2.5 Flash** (Primary) - Google AI, 15 req/min free
-2. **DeepSeek Chat** (Fallback 1) - Fast & cheap alternative
-3. **OpenRouter** (Fallback 2) - Aggregator dengan free models
+Multi-provider dengan **automatic fallback** untuk reliability maksimal:
 
-**Fallback Logic**:
+| Provider | Model | Cost | Quota | Status |
+|----------|-------|------|-------|--------|
+| **NVIDIA NIM** | meta/llama-3.1-70b-instruct | 🆓 FREE | ♾️ Unlimited | ⭐ Primary (Recommended) |
+| **Gemini** | gemini-2.5-flash | 🆓 FREE | ~15 req/min | Fallback 1 |
+| **DeepSeek** | deepseek-chat | 💰 Pay-per-use | ~60 req/min | Fallback 2 |
+| **OpenRouter** | openrouter/free | 🆓 FREE | Varies by model | Fallback 3 |
+
+**Fallback Logic** (Auto-switch on error):
 ```
-Try Gemini → (quota/rate limit?) → Try DeepSeek → (failed?) → Try OpenRouter
+Try NVIDIA → (error/timeout?) → Try Gemini → (quota limit?) 
+→ Try DeepSeek → (failed?) → Try OpenRouter → (all failed?) → Error message
 ```
+
+**Model Selection**:
+- Users can manually select model via UI dropdown (NVIDIA, Gemini, DeepSeek)
+- Default: **NVIDIA** (recommended - gratis & tanpa limit)
+- System auto-fallback jika model yang dipilih gagal
+
+**Setup Guide**: Lihat [NVIDIA-API-SETUP.md](../NVIDIA-API-SETUP.md) untuk cara mendapatkan API key gratis.
 
 ### 5. **Telegram Integration**
 - **Webhook Mode**: Real-time message delivery
@@ -170,15 +185,20 @@ User (Web) → UI Component → React State → Supabase Client
 ### Flow 2: Telegram Bot Query
 ```
 User (Telegram) → Telegram API → Vercel Webhook (/api/telegram)
-→ AI Provider (Gemini) → Tool Execution → Supabase Query
+→ AI Provider (NVIDIA/Gemini/DeepSeek) → Tool Execution → Supabase Query
 → Format Response → Send to Telegram → User receives message
 ```
 
-### Flow 3: AI Assistant Chat
+### Flow 3: AI Assistant Chat (with Model Selection)
 ```
-User Message → /api/ai/chat → Gemini API (with tools)
+User selects model (NVIDIA/Gemini/DeepSeek) → Send message
+→ /api/ai/chat → Selected AI Provider (with tools)
 → Tool calls Supabase → Get data → AI formats response
-→ Return to user → Display in chat
+→ Return to user → Display in chat (with streaming)
+
+If error occurs:
+→ Auto fallback to next available provider
+→ Continue processing → Return response with fallback notice
 ```
 
 ---
@@ -271,7 +291,8 @@ graph LR
 - **Telegram**: Webhook can handle high volume
 
 ### Rate Limiting
+- **NVIDIA**: Unlimited (free tier) ⭐ **RECOMMENDED**
 - **Gemini**: 15 requests/minute (free tier)
 - **DeepSeek**: Pay-per-use, no hard limit
-- **OpenRouter**: Free tier quotas
-- **Fallback system** ensures availability
+- **OpenRouter**: Free tier quotas vary by model
+- **Fallback system** ensures 99.9% availability

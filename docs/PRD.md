@@ -1,5 +1,5 @@
 # Product Requirements Document (PRD)
-**Sistem Informasi Persuratan (SIPAS) v2.0**
+**Sistem Informasi Persuratan (SIPAS) v2.2.0**
 
 ### 🎯 Tujuan Sistem
 - Digitalisasi pencatatan surat masuk dan surat keluar
@@ -22,12 +22,13 @@
 - **Search & Filter**: Pencarian berdasarkan nomor, perihal, pengirim/tujuan
 - **Statistik Real-time**: Dashboard dengan grafik dan metrics
 
-#### 🤖 AI Assistant (Powered by Gemini, DeepSeek, OpenRouter)
+#### 🤖 AI Assistant (Powered by NVIDIA, Gemini, DeepSeek)
 - **Natural Language Query**: Tanya tentang surat dengan bahasa natural
 - **Auto-Suggest**: Rekomendasi berdasarkan pola surat sebelumnya
 - **Smart Search**: Pencarian semantik dengan AI
 - **Document Upload**: Upload dan analisis dokumen surat
-- **Multi-Provider Fallback**: Gemini → DeepSeek → OpenRouter
+- **Multi-Provider Fallback**: NVIDIA → Gemini → DeepSeek → OpenRouter
+- **Improved Context Handling**: Response lebih akurat dengan konteks yang diperkaya
 
 #### 📱 Telegram Bot Integration
 - **Self-Registration**: User chat `/start` untuk dapatkan Telegram ID
@@ -61,9 +62,10 @@
 - **Storage**: Supabase Storage untuk file upload
 
 #### AI Integration
-- **Primary**: Google Gemini 2.5 Flash
-- **Fallback 1**: DeepSeek Chat
-- **Fallback 2**: OpenRouter (free models)
+- **Primary**: NVIDIA (model adapted for letter management)
+- **Fallback 1**: Google Gemini 2.5 Flash
+- **Fallback 2**: DeepSeek Chat
+- **Fallback 3**: OpenRouter (free models)
 - **SDK**: Vercel AI SDK v4
 
 #### Telegram Bot
@@ -88,3 +90,11 @@
 - ✅ Added: Telegram ID management di user profile
 - ✅ Improved: Error handling dan logging
 - ✅ Improved: UI/UX dengan TailAdmin template
+
+#### v2.0 → v2.2.0
+- ✅ **Changed**: NVIDIA sebagai primary AI provider untuk performa lebih baik
+- ✅ **Improved**: Konteks AI lebih kaya dan response lebih akurat
+- ✅ **Improved**: Smart search dengan semantic understanding ditingkatkan
+- ✅ **Added**: Dukungan multi-model untuk fallback yang lebih handal
+- ✅ **Maintained**: Kompatibilitas dengan Gemini dan DeepSeek sebagai fallback
+- ✅ **Updated**: Penyesuaian model AI terbaru dari NVIDIA

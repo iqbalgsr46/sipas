@@ -237,19 +237,6 @@ graph TB
 - **Actor**: All Users
 - **Description**: Query database menggunakan bahasa natural
 - **Examples**:
-  - "Tampilkan surat dari Dinas Pendidikan"
-  - "Ada surat yang perlu saya approve?"
-  - "Cari surat tentang anggaran"
-
----
-
-### 6. Telegram Bot (All Users)
-
-#### UC6: Registrasi via Bot
-- **Actor**: Any Telegram User
-- **Description**: Mendaftar untuk akses bot
-- **Flow**:
-  1. User cari bot `@sipas_karawang_bot`
   2. Ketik `/start`
   3. Bot balas dengan Telegram ID
   4. User kirim ID ke Admin

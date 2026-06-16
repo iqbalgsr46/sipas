@@ -64,35 +64,43 @@ graph TD
 
 ---
 
-## 4. Flowchart AI Assistant Chat
+## 4. Flowchart AI Assistant Chat (with NVIDIA Primary)
 ```mermaid
 graph TD
     A([Mulai]) --> B[User Buka AI Assistant]
     B --> C[/Ketik Pertanyaan/]
-    C --> D[Kirim ke /api/ai/chat]
-    D --> E{AI Provider Available?}
-    E -->|Gemini OK| F[Call Gemini API]
-    E -->|Gemini Limit| G[Fallback ke DeepSeek]
-    G -->|DeepSeek OK| H[Call DeepSeek API]
-    G -->|DeepSeek Failed| I[Fallback ke OpenRouter]
-    I --> J[Call OpenRouter API]
+    C --> D{Model Dipilih?}
+    D -->|NVIDIA| E[Selected: NVIDIA]
+    D -->|Gemini| F[Selected: Gemini]
+    D -->|DeepSeek| G[Selected: DeepSeek]
     
-    F --> K{AI Butuh Tool?}
-    H --> K
-    J --> K
+    E --> H[Kirim ke /api/ai/chat dengan Model]
+    F --> H
+    G --> H
     
-    K -->|Ya| L[AI Call Tool]
-    L --> M[Tool Query Supabase]
-    M --> N[Return Data ke AI]
-    N --> O[AI Format Response]
+    H --> I[Call Selected AI Provider]
+    I --> J{Provider Available?}
+    J -->|Error| K[Trigger Fallback Chain]
+    J -->|Success| L[Continue]
     
-    K -->|Tidak| O
+    K --> M[Try Next Provider]
+    M --> I
     
-    O --> P[Stream Response ke User]
-    P --> Q[Tampilkan di Chat UI]
-    Q --> R{User Lanjut Chat?}
-    R -->|Ya| C
-    R -->|Tidak| Z([Selesai])
+    L --> N{AI Butuh Tool?}
+    N -->|Ya| O[AI Recognize Intent]
+    N -->|Tidak| P[Format Response]
+    
+    O --> Q[Select Appropriate Tool]
+    Q --> R[AI Call Tool]
+    R --> S[Tool Query Supabase]
+    S --> T[Return Data ke AI]
+    T --> P
+    
+    P --> U[Stream Response ke User]
+    U --> V[Tampilkan di Chat UI dengan Model Info]
+    V --> W{User Lanjut Chat?}
+    W -->|Ya| C
+    W -->|Tidak| Z([Selesai])
 ```
 
 ---
@@ -123,7 +131,7 @@ graph TD
 
 ---
 
-## 6. Flowchart Telegram Bot Query
+## 6. Flowchart Telegram Bot Query (with NVIDIA Primary)
 ```mermaid
 graph TD
     A([Mulai]) --> B[User Kirim Pesan ke Bot]
@@ -137,27 +145,32 @@ graph TD
     H --> I[Send Typing Indicator]
     I --> J[Build AI System Prompt]
     J --> K[Call AI dengan Tools]
-    K --> L{AI Provider}
-    L -->|Gemini| M[Try Gemini]
+    K --> L{Primary: NVIDIA}
+    L -->|Try NVIDIA| M[Call NVIDIA NIM]
     M -->|Success| N[Get Response]
-    M -->|Failed| O[Try DeepSeek]
-    O -->|Success| N
-    O -->|Failed| P[Try OpenRouter]
-    P --> N
+    M -->|Error| O[Fallback ke Gemini]
+    O -->|Try Gemini| P[Call Gemini API]
+    P -->|Success| N
+    P -->|Error| Q[Fallback ke DeepSeek]
+    Q -->|Try DeepSeek| R[Call DeepSeek API]
+    R -->|Success| N
+    R -->|Error| S[Fallback ke OpenRouter]
+    S -->|Try OpenRouter| T[Call OpenRouter]
+    T --> N
     
-    N --> Q{AI Called Tool?}
-    Q -->|Ya| R[Execute Tool]
-    R --> S[Query Supabase]
-    S --> T[Return Data]
-    T --> U[AI Format Result]
-    Q -->|Tidak| U
+    N --> U{AI Called Tool?}
+    U -->|Ya| V[Execute Tool]
+    V --> W[Query Supabase]
+    W --> X[Return Data]
+    X --> Y[AI Format Result]
+    U -->|Tidak| Y
     
-    U --> V{Response Valid?}
-    V -->|Tidak| W[Fallback Message]
-    V -->|Ya| X[Format untuk Telegram]
-    W --> X
-    X --> Y[Send Message via Telegram API]
-    Y --> Z
+    Y --> AA{Response Valid?}
+    AA -->|Tidak| AB[Fallback Message]
+    AA -->|Ya| AC[Format untuk Telegram]
+    AB --> AC
+    AC --> AD[Send Message via Telegram API]
+    AD --> Z
 ```
 
 ---
@@ -255,4 +268,81 @@ graph TD
     H --> I[Trigger Re-render]
     I --> J[Theme Berubah]
     J --> Z([Selesai])
+```
+
+---
+
+## 11. Flowchart AI Intent Recognition (v2.2.0)
+```mermaid
+graph TD
+    A([User Query Diterima]) --> B[AI System Prompt: Think Step-by-Step]
+    B --> C{Analyze Query Intent}
+    
+    C -->|"berapa/jumlah surat"| D[Intent: Statistik]
+    C -->|"cari/tampilkan surat"| E[Intent: Search]
+    C -->|"buatkan/buat surat"| F[Intent: Create]
+    C -->|"approval/setujui"| G[Intent: Approval]
+    C -->|"detail/info surat"| H[Intent: Details]
+    C -->|"other"| I[Intent: General Query]
+    
+    D --> J[Select Tool: statistik_surat]
+    E --> K[Select Tool: cari_surat_masuk]
+    F --> L[Select Tool: buat_surat_keluar]
+    G --> M[Select Tool: approval_surat]
+    H --> N[Select Tool: detail_surat]
+    I --> O[AI Tanya Clarifying Question]
+    
+    J --> P[Execute Tool]
+    K --> P
+    L --> P
+    M --> P
+    N --> P
+    O --> Q[Ulangi Intent Recognition]
+    Q --> C
+    
+    P --> R[Tool Return Data]
+    R --> S[AI Format Response dengan Context]
+    S --> T[Return ke User dengan Tool Info]
+    T --> U([Selesai])
+```
+
+---
+
+## 12. Flowchart AI Fallback Mechanism (v2.2.0)
+```mermaid
+graph TD
+    A([API Call Started]) --> B[Try Selected/Primary Provider]
+    B --> C{Response Success?}
+    
+    C -->|Success| D[Return Response]
+    C -->|Error| E{Error Type?}
+    
+    E -->|Timeout| F[Fallback Triggered]
+    E -->|Quota Limit| F
+    E -->|API Error| F
+    E -->|Invalid Key| F
+    E -->|Network Error| F
+    
+    F --> G[Log Error Info]
+    G --> H{Current Provider}
+    
+    H -->|NVIDIA Failed| I[Try Gemini]
+    H -->|Gemini Failed| J[Try DeepSeek]
+    H -->|DeepSeek Failed| K[Try OpenRouter]
+    H -->|OpenRouter Failed| L[All Providers Failed]
+    
+    I --> M{Success?}
+    J --> M
+    K --> M
+    
+    M -->|Success| N[Add Fallback Notice to Response]
+    M -->|Failed| O[Move to Next Provider]
+    O --> H
+    
+    L --> P[Return Error Message]
+    N --> D
+    P --> D
+    
+    D --> Q[Send Response to User]
+    Q --> R([Complete])
 ```

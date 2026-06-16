@@ -1,6 +1,8 @@
-# Panduan Cloning Aplikasi SIPAS v2.0 & Basis Data (Supabase)
+# Panduan Cloning Aplikasi SIPAS v2.2.0 & Basis Data (Supabase)
 
-Panduan ini menjelaskan langkah demi langkah cara melakukan *cloning* (menggandakan) repositori proyek SIPAS v2.0 ke komputer lokal dan mengonfigurasi ulang *database* Supabase + Telegram Bot agar aplikasi dapat langsung berjalan secara fungsional.
+Panduan ini menjelaskan langkah demi langkah cara melakukan *cloning* (menggandakan) repositori proyek SIPAS v2.2.0 ke komputer lokal dan mengonfigurasi ulang *database* Supabase + AI Providers + Telegram Bot agar aplikasi dapat langsung berjalan secara fungsional.
+
+> **⚡ Quick Start?** Jika hanya ingin setup AI dalam 5 menit, baca [QUICK-START-AI.md](../QUICK-START-AI.md) terlebih dahulu!
 
 ---
 
@@ -73,23 +75,41 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGci...[kode_panjang]...
 ```
 
 ### B. AI Providers Configuration
-Dapatkan API keys dari masing-masing provider:
+
+#### **🆓 NVIDIA NIM (Primary - FREE & UNLIMITED)** ⭐ RECOMMENDED
+
+1. **Dapatkan API Key** (Gratis):
+   - Kunjungi: [build.nvidia.com](https://build.nvidia.com/)
+   - Sign up / Login
+   - Buat API key baru
+   - Copy API key (format: `nvapi-xxxxx...`)
+
+2. **Tambahkan ke `.env.local`**:
+```env
+# Primary AI Provider (FREE & UNLIMITED)
+NVIDIA_API_KEY=nvapi-...[your-nvidia-key]
+```
+
+#### **Fallback Providers** (Optional but Recommended)
 
 ```env
-# AI Providers (Primary: Gemini)
+# Fallback #1: Google Gemini (Free tier: 15 req/min)
 GOOGLE_GENERATIVE_AI_API_KEY=AIzaSy...[your-gemini-key]
 
-# Fallback #1: DeepSeek
+# Fallback #2: DeepSeek Chat (Pay-per-use)
 DEEPSEEK_API_KEY=sk-...[your-deepseek-key]
 
-# Fallback #2: OpenRouter (Free models)
+# Fallback #3: OpenRouter (Various free & paid models)
 OPENROUTER_API_KEY=sk-or-v1-...[your-openrouter-key]
 ```
 
 **Cara Dapatkan API Keys:**
+- **NVIDIA NIM** (GRATIS): [build.nvidia.com](https://build.nvidia.com/) ⭐
 - **Gemini**: [aistudio.google.com](https://aistudio.google.com/apikey)
 - **DeepSeek**: [platform.deepseek.com](https://platform.deepseek.com/api_keys)
 - **OpenRouter**: [openrouter.ai/keys](https://openrouter.ai/keys)
+
+> **Pro Tip**: Setup hanya NVIDIA_API_KEY saja sudah cukup! Sistem akan fallback ke Gemini jika NVIDIA tidak tersedia.
 
 ### C. Telegram Bot Configuration
 
@@ -109,13 +129,33 @@ TELEGRAM_BOT_TOKEN=1234567890:ABCdefGHIjklMNOpqrsTUVwxyz
 NEXT_PUBLIC_SITE_URL=https://your-sipas-domain.vercel.app
 ```
 
-**Contoh `.env.local` Lengkap:**
+**Contoh `.env.local` Lengkap (Minimal Setup):**
 ```env
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=https://abcdefgh.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
-# AI Providers
+# AI Providers - Primary (NVIDIA)
+NVIDIA_API_KEY=nvapi-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# AI Providers - Fallback (Optional)
+GOOGLE_GENERATIVE_AI_API_KEY=AIzaSyXxXxXxXxXxXxXxXxXxXxXxXxXxXxX
+
+# Telegram Bot
+TELEGRAM_BOT_TOKEN=8889698173:AAE8D-rTxRSWe73nJc844qCIELOBLYIwmLg
+NEXT_PUBLIC_SITE_URL=https://sipas-your-org.vercel.app
+```
+
+**Contoh `.env.local` Lengkap (Dengan Semua Providers):**
+```env
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=https://abcdefgh.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+# AI Providers - Primary
+NVIDIA_API_KEY=nvapi-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# AI Providers - Fallback
 GOOGLE_GENERATIVE_AI_API_KEY=AIzaSyXxXxXxXxXxXxXxXxXxXxXxXxXxXxX
 DEEPSEEK_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 OPENROUTER_API_KEY=sk-or-v1-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
@@ -235,7 +275,9 @@ VALUES
 - **Cek logs**: Masuk ke Vercel dashboard > Functions > Logs
 
 ### 2. AI Error / Limit Exceeded
-- Sistem akan otomatis fallback: Gemini → DeepSeek → OpenRouter
+- Sistem akan otomatis fallback: NVIDIA → Gemini → DeepSeek → OpenRouter
+- Jika hanya setup NVIDIA, tidak ada masalah (unlimited requests)
+- Jika NVIDIA kedaluwarsa, fallback ke Gemini (15 req/min)
 - Pastikan minimal 1 API key valid
 
 ### 3. Database Connection Error
@@ -319,6 +361,13 @@ sipas/
 
 ## Additional Resources
 
+### 📖 SIPAS Documentation
+- **[QUICK-START-AI.md](../QUICK-START-AI.md)** - Setup AI dalam 5 menit (⚡ Start here!)
+- **[NVIDIA-API-SETUP.md](../NVIDIA-API-SETUP.md)** - Panduan lengkap NVIDIA NIM API
+- **[AI-MODELS-COMPARISON.md](../AI-MODELS-COMPARISON.md)** - Perbandingan semua AI models
+
+### 🔗 External Resources
+- **NVIDIA NIM**: https://build.nvidia.com/
 - **Supabase Docs**: https://supabase.com/docs
 - **Next.js Docs**: https://nextjs.org/docs
 - **Vercel Deployment**: https://vercel.com/docs

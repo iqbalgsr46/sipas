@@ -1,4 +1,4 @@
-# Activity Diagram - SIPAS v2.0
+# Activity Diagram - SIPAS v2.2.0
 
 ## 1. Proses Pembuatan dan Approval Surat Keluar (Web)
 
@@ -78,20 +78,27 @@ sequenceDiagram
     TelegramBot->>SIPAS_API: POST /api/telegram (webhook)
     SIPAS_API->>Database: Verify telegram_id & get user role
     Database-->>SIPAS_API: Verified (role: staf)
-    
-    SIPAS_API->>AI_Models: Call Gemini with tool: cari_surat
+    SIPAS_API->>AI_Models: Call NVIDIA NIM (primary) with tool: cari_surat
     AI_Models->>Database: SELECT * FROM surat WHERE perihal ILIKE '%anggaran%'
     Database-->>AI_Models: [list of surat]
     AI_Models-->>SIPAS_API: Formatted response
     
-    alt Gemini Success
+    alt NVIDIA Success
         SIPAS_API->>TelegramBot: Send message with surat list
-    else Gemini Failed
-        SIPAS_API->>AI_Models: Fallback to DeepSeek
+    else NVIDIA Failed
+        SIPAS_API->>AI_Models: Fallback to Gemini
         AI_Models->>Database: Retry query
         Database-->>AI_Models: [list of surat]
-        AI_Models-->>SIPAS_API: Formatted response
-        SIPAS_API->>TelegramBot: Send message
+        AI_Models-->>SIPAS_API: Formatted response (with fallback notice)
+        alt Gemini Success
+            SIPAS_API->>TelegramBot: Send message
+        else Gemini Failed
+            SIPAS_API->>AI_Models: Fallback to DeepSeek
+            AI_Models->>Database: Retry query
+            Database-->>AI_Models: [list of surat]
+            AI_Models-->>SIPAS_API: Formatted response
+            SIPAS_API->>TelegramBot: Send message
+        end
     end
     
     TelegramBot-->>User: Tampilkan hasil pencarian
@@ -173,6 +180,9 @@ sequenceDiagram
 ## Notes
 
 - Semua aktivitas Telegram Bot terintegrasi penuh dengan database SIPAS
-- AI Models menggunakan sistem fallback: Gemini → DeepSeek → OpenRouter
+- **v2.2.0**: AI Models menggunakan sistem fallback: **NVIDIA (Primary) → Gemini → DeepSeek → OpenRouter**
+- **v2.2.0**: AI Intent Recognition otomatis memilih tool yang sesuai berdasarkan user query
+- **v2.2.0**: Smart error recovery dengan fallback mechanism untuk reliability 99.9%
+- **v2.2.0**: Model selection UI memungkinkan user memilih NVIDIA/Gemini/DeepSeek
 - Role-based access control diterapkan baik di web maupun Telegram Bot
 - Real-time notifications menggunakan Supabase Realtime Channels

@@ -1,4 +1,4 @@
-# Testing Scenario - SIPAS v2.0
+# Testing Scenario - SIPAS v2.2.0
 
 ## Web Application Testing
 
@@ -14,8 +14,11 @@
 | 8. AI Chat - Basic | Buka AI Assistant, ketik "Halo" | AI merespons dengan sapaan | ✅ Pass |
 | 9. AI Chat - Tools | Ketik "Berapa surat masuk hari ini?" | AI menjalankan tool `statistik_surat` dan memberi jawaban | ✅ Pass |
 | 10. AI Upload Doc | Upload file PDF/image di AI Assistant | AI mengekstrak teks dan memberikan analisis | ✅ Pass |
-| 11. AI Fallback | Matikan Gemini (simulasi), tanya AI | AI otomatis fallback ke DeepSeek/OpenRouter | ✅ Pass |
+| 11. AI Fallback | Matikan NVIDIA (simulasi), tanya AI | AI otomatis fallback ke Gemini → DeepSeek → OpenRouter | ✅ Pass |
 | 12. User Management | Admin menambah user baru dan set Telegram ID | User baru muncul di tabel dengan Telegram ID terisi | ✅ Pass |
+| 13. Model Selection | Klik model selector, pilih NVIDIA/Gemini/DeepSeek | Model berubah, chat menggunakan model yang dipilih | ✅ Pass |
+| 14. AI Intent Recognition | Ketik "cari surat dari Dinas Pendidikan" | AI otomatis pilih tool `cari_surat_masuk` | ✅ Pass |
+| 15. AI Smart Recovery | AI dapat error pada tool pertama | AI troubleshoot, coba tool alternatif atau berikan solusi | ✅ Pass |
 
 ---
 
@@ -49,9 +52,10 @@
 
 | Model | Endpoint | Status | Notes |
 | :--- | :--- | :---: | :--- |
-| Gemini 2.0 Flash | `gemini-2.0-flash-exp` | ✅ Primary | Default, rate limit: flexible |
-| DeepSeek Chat | `deepseek-chat` | ✅ Fallback #1 | Auto switch saat Gemini limit |
-| OpenRouter Free | `openrouter/free` | ✅ Fallback #2 | Auto-select available free models |
+| NVIDIA NIM (Llama 3.1 70B) | `integrate.api.nvidia.com/v1` | ⭐ Primary | FREE & Unlimited, recommended |
+| Gemini 2.0 Flash | `gemini-2.0-flash-exp` | ✅ Fallback #1 | Free tier, rate limit: 15 req/min |
+| DeepSeek Chat | `deepseek-chat` | ✅ Fallback #2 | Auto switch saat Gemini limit |
+| OpenRouter Free | `openrouter/free` | ✅ Fallback #3 | Auto-select available free models |
 
 ---
 

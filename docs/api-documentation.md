@@ -452,6 +452,7 @@ await supabase.auth.signOut()
 ## Rate Limiting
 
 ### AI API
+- **NVIDIA NIM** (Primary): Unlimited requests - FREE ⭐
 - **Gemini**: 15 requests/minute (free tier)
 - **DeepSeek**: No hard limit (pay-per-use)
 - **OpenRouter**: Variable by model

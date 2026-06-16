@@ -1,4 +1,4 @@
-# Entity Relationship Diagram (ERD) - SIPAS v2.0
+# Entity Relationship Diagram (ERD) - SIPAS v2.2.0
 
 ```mermaid
 erDiagram
