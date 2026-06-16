@@ -96,79 +96,130 @@ async function runAI(
     msg.includes("limit") || msg.includes("Insufficient") ||
     msg.includes("balance") || msg.includes("billing") || msg.includes("402");
 
-  const call = async (model: any) => {
-    const result = await generateText({
-      model,
-      system: systemPrompt,
-      messages,
-      tools,
-      maxSteps: 5,
-    } as any);
+  const call = async (model: any, modelName: string) => {
+    console.log(`[TG Bot] Calling ${modelName} model...`);
+    
+    try {
+      const result = await generateText({
+        model,
+        system: systemPrompt,
+        messages,
+        tools,
+        maxSteps: 5,
+      } as any);
 
-    console.log("[TG Bot] AI result:", JSON.stringify({
-      text: result.text,
-      toolCallsCount: result.toolCalls?.length || 0,
-      toolResultsCount: result.toolResults?.length || 0
-    }));
+      console.log(`[TG Bot] ${modelName} result:`, JSON.stringify({
+        text: result.text?.substring(0, 100) || "(empty)",
+        textLength: result.text?.length || 0,
+        toolCallsCount: result.toolCalls?.length || 0,
+        toolResultsCount: result.toolResults?.length || 0,
+        steps: result.steps?.length || 0
+      }));
 
-    // Prioritaskan text response dari AI
-    if (result.text && result.text.trim()) {
-      return result.text;
-    }
-
-    // Jika tidak ada text tapi ada toolResults, format hasilnya
-    if (result.toolResults && result.toolResults.length > 0) {
-      const lastResult = result.toolResults[result.toolResults.length - 1] as any;
-      
-      if (lastResult.result?.error) {
-        return `❌ ${lastResult.result.error}`;
+      // Log tool results untuk debugging
+      if (result.toolResults && result.toolResults.length > 0) {
+        result.toolResults.forEach((tr: any, idx: number) => {
+          console.log(`[TG Bot] Tool result ${idx}:`, {
+            toolName: tr.toolName,
+            hasResult: !!tr.result,
+            hasError: !!tr.result?.error,
+            resultPreview: typeof tr.result === 'object' 
+              ? JSON.stringify(tr.result).substring(0, 200)
+              : String(tr.result).substring(0, 200)
+          });
+        });
       }
-      
-      // Jika tool berhasil tapi AI tidak generate response, buat response sederhana
-      if (lastResult.result) {
-        const toolData = lastResult.result;
+
+      // Prioritaskan text response dari AI
+      if (result.text && result.text.trim()) {
+        console.log(`[TG Bot] ${modelName} returned text response`);
+        return result.text;
+      }
+
+      // Jika tidak ada text tapi ada toolResults, format hasilnya
+      if (result.toolResults && result.toolResults.length > 0) {
+        console.log(`[TG Bot] ${modelName} executed tools but no text, formatting manually...`);
+        const lastResult = result.toolResults[result.toolResults.length - 1] as any;
         
-        // Format berdasarkan tool yang dipanggil
-        if (lastResult.toolName === 'statistik_surat') {
-          return `📊 Statistik Surat:\n\n` +
-            `📥 Surat Masuk: ${toolData.surat_masuk?.total || 0}\n` +
-            `📤 Surat Keluar: ${toolData.surat_keluar?.total || 0}\n` +
-            `⏳ Menunggu Approval: ${toolData.surat_keluar?.menunggu_approval || 0}`;
+        if (lastResult.result?.error) {
+          return `❌ ${lastResult.result.error}`;
         }
         
-        // Default fallback
-        return `✅ Tindakan berhasil! (${lastResult.toolName})`;
+        // Jika tool berhasil tapi AI tidak generate response, buat response sederhana
+        if (lastResult.result) {
+          const toolData = lastResult.result;
+          console.log(`[TG Bot] Formatting tool result for: ${lastResult.toolName}`);
+          
+          // Format berdasarkan tool yang dipanggil
+          if (lastResult.toolName === 'statistik_surat') {
+            const stats = `📊 Statistik Surat\n\n` +
+              `📥 Surat Masuk: ${toolData.surat_masuk?.total || 0}\n` +
+              `📤 Surat Keluar: ${toolData.surat_keluar?.total || 0}\n` +
+              `⏳ Menunggu Approval: ${toolData.surat_keluar?.menunggu_approval || 0}`;
+            console.log(`[TG Bot] Generated stats response:`, stats);
+            return stats;
+          }
+          
+          if (lastResult.toolName === 'list_surat_masuk') {
+            if (Array.isArray(toolData) && toolData.length > 0) {
+              let response = `📥 Surat Masuk (${toolData.length})\n\n`;
+              toolData.slice(0, 5).forEach((surat: any, idx: number) => {
+                response += `${idx + 1}. ${surat.nomor_surat}\n`;
+                response += `   Pengirim: ${surat.pengirim}\n`;
+                response += `   Perihal: ${surat.perihal}\n\n`;
+              });
+              return response;
+            } else {
+              return "📥 Tidak ada surat masuk ditemukan.";
+            }
+          }
+          
+          // Default fallback dengan data preview
+          console.log(`[TG Bot] Using default fallback for: ${lastResult.toolName}`);
+          return `✅ Data berhasil diambil (${lastResult.toolName}).\n\nHasil: ${JSON.stringify(toolData).substring(0, 200)}...`;
+        }
       }
-    }
 
-    return null;
+      console.warn(`[TG Bot] ${modelName} returned no text and no valid tool results`);
+      return null;
+      
+    } catch (callError: any) {
+      console.error(`[TG Bot] ${modelName} call error:`, callError?.message);
+      console.error(`[TG Bot] ${modelName} error stack:`, callError?.stack);
+      throw callError;
+    }
   };
 
   // Coba Gemini dulu
   try {
     if (!googleKey) throw new Error("No Gemini key");
-    const text = await call(google("gemini-2.5-flash"));
+    const text = await call(google("gemini-2.5-flash"), "Gemini");
     if (text) return text;
   } catch (e: any) {
     const msg = e?.message || "";
-    console.warn("[TG Bot] Gemini failed:", msg);
+    console.error("[TG Bot] Gemini failed:", msg);
+    console.error("[TG Bot] Gemini error stack:", e?.stack);
 
     // Fallback 1 → DeepSeek
     if (isRecoverableError(msg) && deepseekKey) {
       try {
-        const text = await call(deepseek("deepseek-chat"));
+        const text = await call(deepseek("deepseek-chat"), "DeepSeek");
         if (text) return text + "\n\n_⚡ via DeepSeek_";
       } catch (e2: any) {
-        console.warn("[TG Bot] DeepSeek failed:", e2?.message);
+        console.error("[TG Bot] DeepSeek failed:", e2?.message);
+        console.error("[TG Bot] DeepSeek error stack:", e2?.stack);
 
         // Fallback 2 → OpenRouter
         if (openrouterKey) {
           try {
-            const text = await call(openrouter("openrouter/free"));
+            const text = await call(openrouter("openrouter/free"), "OpenRouter");
             if (text) return text + "\n\n_⚡ via OpenRouter_";
           } catch (e3: any) {
+            console.error("[TG Bot] OpenRouter failed:", e3?.message);
             throw new Error(`Semua AI gagal: ${e3?.message}`);
           }
+        } else {
+          throw new Error(`Gemini & DeepSeek gagal, OpenRouter key tidak ada`);
         }
       }
     } else {
