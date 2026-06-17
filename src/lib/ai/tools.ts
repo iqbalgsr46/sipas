@@ -100,7 +100,7 @@ RETURN: { surat_masuk: { total }, surat_keluar: { total, menunggu_approval } }
 
 SELALU gunakan tool ini untuk pertanyaan statistik, JANGAN jawab asal-asalan!`,
       parameters: statistikSchema,
-      execute: async (args: z.infer<typeof statistikSchema> = {}) => {
+      execute: async (args: z.infer<typeof statistikSchema> = { periode: "semua" }) => {
         try {
           const supabase = await getDb();
           const range = getStatsRange(args.periode, args.tanggal_mulai, args.tanggal_selesai);
