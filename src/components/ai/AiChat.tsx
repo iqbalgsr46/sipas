@@ -12,6 +12,7 @@ export function AiChat() {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [isSending, setIsSending] = useState(false);
+  const [selectedModel, setSelectedModel] = useState<"gemini" | "deepseek" | "nvidia">("nvidia"); // Default NVIDIA (free)
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -38,6 +39,7 @@ export function AiChat() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           messages: history.map(({ role, content }) => ({ role, content })),
+          model: selectedModel,
         }),
       });
 
@@ -113,24 +115,70 @@ export function AiChat() {
         }`}
       >
         {/* Header */}
-        <div className="px-5 py-4 bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-sm">
-              <span className="material-symbols-outlined text-[18px]">smart_toy</span>
+        <div className="px-5 py-4 bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 shrink-0">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-sm">
+                <span className="material-symbols-outlined text-[18px]">smart_toy</span>
+              </div>
+              <div>
+                <h3 className="text-[14px] font-bold text-slate-800 dark:text-white leading-tight">SIPAS AI</h3>
+                <p className="text-[11px] text-green-500 font-medium flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse inline-block"></span> Online
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="text-[14px] font-bold text-slate-800 dark:text-white leading-tight">SIPAS AI</h3>
-              <p className="text-[11px] text-green-500 font-medium flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse inline-block"></span> Online
-              </p>
-            </div>
+            <button
+              onClick={() => setIsOpen(false)}
+              className="w-8 h-8 rounded-full hover:bg-slate-100 dark:hover:bg-gray-700 flex items-center justify-center text-slate-500 transition-colors"
+            >
+              <span className="material-symbols-outlined text-[20px]">close</span>
+            </button>
           </div>
-          <button
-            onClick={() => setIsOpen(false)}
-            className="w-8 h-8 rounded-full hover:bg-slate-100 dark:hover:bg-gray-700 flex items-center justify-center text-slate-500 transition-colors"
-          >
-            <span className="material-symbols-outlined text-[20px]">close</span>
-          </button>
+          
+          {/* Model Selector */}
+          <div className="flex gap-1.5 bg-slate-100 dark:bg-gray-900 p-1 rounded-xl">
+            <button
+              onClick={() => setSelectedModel("nvidia")}
+              disabled={isSending}
+              className={`flex-1 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
+                selectedModel === "nvidia"
+                  ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-sm"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
+              }`}
+            >
+              <span className="flex items-center justify-center gap-1">
+                🚀 NVIDIA
+                <span className="text-[9px] bg-white/20 px-1.5 py-0.5 rounded">FREE</span>
+              </span>
+            </button>
+            <button
+              onClick={() => setSelectedModel("gemini")}
+              disabled={isSending}
+              className={`flex-1 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
+                selectedModel === "gemini"
+                  ? "bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-sm"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
+              }`}
+            >
+              <span className="flex items-center justify-center gap-1">
+                ✨ Gemini
+              </span>
+            </button>
+            <button
+              onClick={() => setSelectedModel("deepseek")}
+              disabled={isSending}
+              className={`flex-1 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
+                selectedModel === "deepseek"
+                  ? "bg-gradient-to-r from-blue-500 to-cyan-600 text-white shadow-sm"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
+              }`}
+            >
+              <span className="flex items-center justify-center gap-1">
+                🔍 DeepSeek
+              </span>
+            </button>
+          </div>
         </div>
 
         {/* Messages Area */}

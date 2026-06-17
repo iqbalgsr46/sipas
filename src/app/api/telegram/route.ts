@@ -25,6 +25,266 @@ const nvidia = createOpenAI({
   apiKey: process.env.NVIDIA_API_KEY ?? "",
 });
 
+export const maxDuration = 60;
+
+function getToolOutput(toolResult: any) {
+  return toolResult?.output ?? toolResult?.result;
+}
+
+function normalizeIntent(text: string) {
+  return text.toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+function hasAny(text: string, terms: string[]) {
+  return terms.some((term) => text.includes(term));
+}
+
+function detectStatsArgs(text: string) {
+  const normalized = normalizeIntent(text);
+  const isoDate = normalized.match(/\b(20\d{2}-\d{2}-\d{2})\b/);
+  const localDate = normalized.match(/\b(\d{1,2})[/-](\d{1,2})[/-](20\d{2})\b/);
+
+  if (isoDate?.[1]) {
+    return { periode: "custom", tanggal_mulai: isoDate[1], tanggal_selesai: isoDate[1] };
+  }
+
+  if (localDate) {
+    const day = localDate[1].padStart(2, "0");
+    const month = localDate[2].padStart(2, "0");
+    const year = localDate[3];
+    const date = `${year}-${month}-${day}`;
+    return { periode: "custom", tanggal_mulai: date, tanggal_selesai: date };
+  }
+
+  if (hasAny(normalized, ["hari ini", "today"])) return { periode: "hari_ini" };
+  if (hasAny(normalized, ["kemarin", "yesterday"])) return { periode: "kemarin" };
+  if (hasAny(normalized, ["bulan ini", "month ini"])) return { periode: "bulan_ini" };
+  if (hasAny(normalized, ["tahun ini", "year ini"])) return { periode: "tahun_ini" };
+
+  return { periode: "semua" };
+}
+
+function extractSearchQuery(input: string) {
+  const cleaned = input
+    .replace(/^(tolong|mohon)?\s*(carikan|cari|temukan|tampilkan|lihat|ambil|dapatkan)\s*(saya)?/i, "")
+    .replace(/\b(data asli|data|surat\s*(masuk|keluar)?|terbaru|hari ini|kemarin|bulan ini|tahun ini|di sistem|yang|berkaitan|dengan|mengenai|tentang|dari|untuk|saya|ada)\b/gi, " ")
+    .replace(/\b(20\d{2}-\d{2}-\d{2})\b/g, " ")
+    .replace(/\b\d{1,2}[/-]\d{1,2}[/-]20\d{2}\b/g, " ")
+    .replace(/[.:]+$/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return cleaned.length >= 3 && cleaned !== "..." ? cleaned : "";
+}
+
+function formatToolResults(toolResults: any[]) {
+  const parts: string[] = [];
+
+  for (const tr of toolResults) {
+    const toolName = tr.toolName;
+    const output = getToolOutput(tr);
+
+    if (tr.type === "tool-error") {
+      parts.push(`Gagal menjalankan ${toolName}: ${tr.error?.message ?? String(tr.error)}`);
+      continue;
+    }
+
+    if (output === undefined || output === null) {
+      parts.push(`Tool ${toolName} belum mengembalikan data. Silakan coba lagi.`);
+      continue;
+    }
+
+    if (output.error) {
+      parts.push(`Gagal (${toolName}): ${output.error}`);
+      continue;
+    }
+
+    switch (toolName) {
+      case "statistik_surat": {
+        const periode = output.periode ? ` (${output.periode})` : "";
+        parts.push([
+          `Statistik Surat SIPAS${periode}`,
+          "",
+          `Surat masuk: ${output.surat_masuk?.total ?? 0} surat`,
+          `Surat keluar: ${output.surat_keluar?.total ?? 0} surat`,
+          `Menunggu approval: ${output.surat_keluar?.menunggu_approval ?? 0} surat`,
+        ].join("\n"));
+        break;
+      }
+      case "cari_surat_masuk":
+      case "cari_surat_keluar": {
+        const jenis = toolName === "cari_surat_masuk" ? "masuk" : "keluar";
+        const data = Array.isArray(output) ? output : output.data ?? [];
+
+        if (data.length === 0) {
+          parts.push(`Tidak ada surat ${jenis} yang ditemukan.`);
+          break;
+        }
+
+        const rows = data.slice(0, 5).map((surat: any, index: number) => {
+          const pihak = toolName === "cari_surat_masuk"
+            ? `Pengirim: ${surat.pengirim ?? "-"}`
+            : `Tujuan: ${surat.tujuan ?? "-"}`;
+
+          return [
+            `${index + 1}. ${surat.nomor_surat ?? "-"}`,
+            `   ${pihak}`,
+            `   Perihal: ${surat.perihal ?? "-"}`,
+            `   Status: ${surat.status ?? "-"}`,
+          ].join("\n");
+        });
+
+        parts.push([`Ditemukan ${data.length} surat ${jenis}:`, "", ...rows].join("\n"));
+        break;
+      }
+      case "daftar_pending_approval": {
+        const data = output.data ?? [];
+
+        if (data.length === 0) {
+          parts.push("Tidak ada surat yang menunggu approval saat ini.");
+          break;
+        }
+
+        const rows = data.slice(0, 10).map((surat: any, index: number) => (
+          `${index + 1}. ${surat.nomor_surat ?? "-"} - ${surat.perihal ?? "-"}`
+        ));
+        parts.push([`${data.length} surat menunggu approval:`, "", ...rows].join("\n"));
+        break;
+      }
+      case "detail_surat_masuk":
+      case "detail_surat_keluar": {
+        const surat = output.data;
+
+        if (!surat) {
+          parts.push("Surat tidak ditemukan.");
+          break;
+        }
+
+        parts.push([
+          `Detail ${toolName === "detail_surat_masuk" ? "Surat Masuk" : "Surat Keluar"}`,
+          "",
+          `Nomor: ${surat.nomor_surat ?? "-"}`,
+          `${toolName === "detail_surat_masuk" ? "Pengirim" : "Tujuan"}: ${surat.pengirim ?? surat.tujuan ?? "-"}`,
+          `Perihal: ${surat.perihal ?? "-"}`,
+          `Tanggal: ${surat.tanggal_surat ?? "-"}`,
+          `Status: ${surat.status ?? "-"}`,
+        ].join("\n"));
+        break;
+      }
+      case "buat_surat_masuk":
+      case "buat_surat_keluar":
+      case "kirim_approval":
+      case "setujui_surat":
+      case "tolak_surat":
+      case "hapus_surat": {
+        parts.push(output.message ?? "Aksi berhasil diproses.");
+        break;
+      }
+      default: {
+        const preview = typeof output === "object"
+          ? JSON.stringify(output, null, 2).slice(0, 500)
+          : String(output).slice(0, 500);
+        parts.push(`Data berhasil diambil dari ${toolName}:\n${preview}`);
+      }
+    }
+  }
+
+  return parts.filter(Boolean).join("\n\n") || "Data berhasil diproses.";
+}
+
+async function runLocalTool(tools: any, toolName: string, args: Record<string, any> = {}) {
+  const tool = tools?.[toolName];
+  if (!tool?.execute) return `Tool ${toolName} tidak tersedia di server.`;
+
+  const output = await tool.execute(args);
+  return formatToolResults([{ toolName, output }]);
+}
+
+async function buildSearchResponse(tools: any, input: string) {
+  const normalized = normalizeIntent(input);
+  const query = extractSearchQuery(input);
+  const listMode = hasAny(normalized, ["data asli", "terbaru", "daftar", "list", "tampilkan", "lihat", "ambil", "dapatkan"]);
+
+  if (!query && !listMode) {
+    return [
+      "Bisa. Kirim kata kunci surat yang ingin dicari.",
+      "",
+      "Contoh: Cari surat masuk tentang undangan rapat",
+    ].join("\n");
+  }
+
+  const wantsIncoming = normalized.includes("surat masuk");
+  const wantsOutgoing = normalized.includes("surat keluar");
+  const args = { query: query || undefined, limit: 5 };
+  const results: string[] = [];
+
+  if (!wantsOutgoing || wantsIncoming) {
+    results.push(await runLocalTool(tools, "cari_surat_masuk", args));
+  }
+
+  if (!wantsIncoming || wantsOutgoing) {
+    results.push(await runLocalTool(tools, "cari_surat_keluar", args));
+  }
+
+  return results.join("\n\n");
+}
+
+async function buildIncomingSummary(tools: any) {
+  const result = await tools.cari_surat_masuk.execute({ limit: 5 });
+  if (result?.error) return formatToolResults([{ toolName: "cari_surat_masuk", output: result }]);
+
+  const data = result?.data ?? [];
+  if (data.length === 0) return "Belum ada surat masuk yang bisa diringkas saat ini.";
+
+  const rows = data.map((surat: any, index: number) => (
+    `${index + 1}. ${surat.nomor_surat ?? "-"} - ${surat.perihal ?? "-"}\n   Pengirim: ${surat.pengirim ?? "-"}\n   Status: ${surat.status ?? "-"}`
+  ));
+
+  return ["Ringkasan surat masuk terbaru:", "", ...rows].join("\n");
+}
+
+async function tryLocalTelegramResponse(text: string, tools: any) {
+  const normalized = normalizeIntent(text);
+  if (!normalized || normalized.startsWith("/")) return null;
+
+  if (hasAny(normalized, ["help", "bantuan", "menu"])) {
+    return [
+      "Saya bisa bantu akses data SIPAS langsung dari Telegram:",
+      "- Statistik surat hari ini/bulan ini",
+      "- Cari surat masuk atau surat keluar",
+      "- Tampilkan surat terbaru",
+      "- Ringkas surat masuk terbaru",
+      "- Cek daftar approval",
+      "",
+      "Contoh: Berapa surat masuk hari ini?",
+    ].join("\n");
+  }
+
+  if (hasAny(normalized, ["pending approval", "menunggu approval", "perlu disetujui", "antrian approval", "daftar approval"])) {
+    return runLocalTool(tools, "daftar_pending_approval", { limit: 10 });
+  }
+
+  if (
+    hasAny(normalized, ["statistik", "jumlah", "total", "berapa"]) &&
+    hasAny(normalized, ["surat", "approval", "persetujuan"])
+  ) {
+    return runLocalTool(tools, "statistik_surat", detectStatsArgs(text));
+  }
+
+  if (hasAny(normalized, ["ringkas", "ringkasan", "resume"]) && normalized.includes("surat")) {
+    return buildIncomingSummary(tools);
+  }
+
+  if (
+    hasAny(normalized, ["cari", "carikan", "temukan", "tampilkan", "lihat", "ambil", "dapatkan", "data asli", "daftar", "list", "terbaru"]) &&
+    normalized.includes("surat")
+  ) {
+    return buildSearchResponse(tools, text);
+  }
+
+  return null;
+}
+
 // Escape markdown characters untuk Telegram
 function escapeMarkdown(text: string): string {
   // Karakter yang perlu di-escape untuk MarkdownV2
@@ -97,12 +357,6 @@ async function runAI(
   const openrouterKey = process.env.OPENROUTER_API_KEY;
   const nvidiaKey = process.env.NVIDIA_API_KEY;
 
-  const isRecoverableError = (msg: string) =>
-    msg.includes("quota") || msg.includes("429") ||
-    msg.includes("RESOURCE_EXHAUSTED") || msg.includes("rate") ||
-    msg.includes("limit") || msg.includes("Insufficient") ||
-    msg.includes("balance") || msg.includes("billing") || msg.includes("402");
-
   const call = async (model: any, modelName: string) => {
     console.log(`[TG Bot] Calling ${modelName} model...`);
     
@@ -147,26 +401,28 @@ async function runAI(
             const safeTr = {
               toolName: tr.toolName,
               toolCallId: tr.toolCallId,
-              args: tr.args,
-              hasResult: !!tr.result
+              input: tr.input ?? tr.args,
+              hasOutput: getToolOutput(tr) !== undefined
             };
             console.log(`[TG Bot] Tool result ${idx} RAW:`, JSON.stringify(safeTr));
           } catch (err) {
             console.warn(`[TG Bot] Could not stringify tool result ${idx}`);
           }
+
+          const toolOutput = getToolOutput(tr);
           
           console.log(`[TG Bot] Tool result ${idx} details:`, {
             toolName: tr.toolName,
-            hasResult: !!tr.result,
-            resultIsNull: tr.result === null,
-            resultIsUndefined: tr.result === undefined,
-            resultType: typeof tr.result,
-            hasError: !!tr.result?.error,
-            args: tr.args,
-            resultPreview: tr.result 
-              ? (typeof tr.result === 'object' 
-                ? JSON.stringify(tr.result).substring(0, 300)
-                : String(tr.result).substring(0, 300))
+            hasOutput: toolOutput !== undefined,
+            outputIsNull: toolOutput === null,
+            outputIsUndefined: toolOutput === undefined,
+            outputType: typeof toolOutput,
+            hasError: !!toolOutput?.error,
+            input: tr.input ?? tr.args,
+            outputPreview: toolOutput 
+              ? (typeof toolOutput === 'object' 
+                ? JSON.stringify(toolOutput).substring(0, 300)
+                : String(toolOutput).substring(0, 300))
               : "NO RESULT"
           });
         });
@@ -193,40 +449,42 @@ async function runAI(
       // Ada tool results, format hasilnya
       console.log(`[TG Bot] ${modelName} executed ${result.toolResults.length} tools, formatting manually...`);
       const lastResult = result.toolResults[result.toolResults.length - 1] as any;
+      const lastOutput = getToolOutput(lastResult);
       
       console.log(`[TG Bot] Last tool details:`, {
         toolName: lastResult.toolName,
-        hasResult: !!lastResult.result,
-        resultType: typeof lastResult.result,
-        resultIsNull: lastResult.result === null,
-        resultKeys: lastResult.result && typeof lastResult.result === 'object' 
-          ? Object.keys(lastResult.result) 
+        hasResult: lastOutput !== undefined,
+        resultType: typeof lastOutput,
+        resultIsNull: lastOutput === null,
+        resultKeys: lastOutput && typeof lastOutput === 'object' 
+          ? Object.keys(lastOutput) 
           : [],
-        fullResult: lastResult.result 
-          ? JSON.stringify(lastResult.result).substring(0, 500)
+        fullResult: lastOutput 
+          ? JSON.stringify(lastOutput).substring(0, 500)
           : "UNDEFINED OR NULL"
       });
       
       // Cek apakah result undefined atau null
-      if (!lastResult.result && lastResult.result !== 0 && lastResult.result !== false) {
+      if (lastOutput === undefined || lastOutput === null) {
         console.error(`[TG Bot] Tool ${lastResult.toolName} returned undefined/null result`);
-        return `⚠️ Tool ${lastResult.toolName} tidak mengembalikan data. Kemungkinan ada masalah dengan query database atau permission.`;
+        return `Tool ${lastResult.toolName} belum mengembalikan data. Silakan coba lagi.`;
       }
       
       // Cek error dari tool
-      if (lastResult.result?.error) {
-        console.log(`[TG Bot] Tool returned error:`, lastResult.result.error);
-        return `❌ ${lastResult.result.error}`;
+      if (lastOutput?.error) {
+        console.log(`[TG Bot] Tool returned error:`, lastOutput.error);
+        return `Gagal: ${lastOutput.error}`;
       }
       
       // Jika tool berhasil, format berdasarkan tool name
-      if (lastResult.result) {
-        const toolData = lastResult.result;
+      if (lastOutput) {
+        const toolData = lastOutput;
         console.log(`[TG Bot] Formatting result for tool: ${lastResult.toolName}`);
         
         // Format berdasarkan tool yang dipanggil
         if (lastResult.toolName === 'statistik_surat') {
-          const stats = `📊 Statistik Surat\n\n` +
+          const period = toolData.periode ? ` (${toolData.periode})` : "";
+          const stats = `📊 Statistik Surat${period}\n\n` +
             `📥 Surat Masuk: ${toolData.surat_masuk?.total || 0}\n` +
             `📤 Surat Keluar: ${toolData.surat_keluar?.total || 0}\n` +
             `⏳ Menunggu Approval: ${toolData.surat_keluar?.menunggu_approval || 0}`;
@@ -234,11 +492,12 @@ async function runAI(
           return stats;
         }
         
-        if (lastResult.toolName === 'list_surat_masuk') {
-          console.log(`[TG Bot] Formatting list_surat_masuk, data:`, JSON.stringify(toolData).substring(0, 200));
-          if (Array.isArray(toolData) && toolData.length > 0) {
-            let response = `📥 Surat Masuk (${toolData.length})\n\n`;
-            toolData.slice(0, 5).forEach((surat: any, idx: number) => {
+        if (lastResult.toolName === 'cari_surat_masuk') {
+          const data = Array.isArray(toolData) ? toolData : toolData.data ?? [];
+          console.log(`[TG Bot] Formatting cari_surat_masuk, data:`, JSON.stringify(data).substring(0, 200));
+          if (data.length > 0) {
+            let response = `📥 Surat Masuk (${data.length})\n\n`;
+            data.slice(0, 5).forEach((surat: any, idx: number) => {
               response += `${idx + 1}. ${surat.nomor_surat}\n`;
               response += `   Pengirim: ${surat.pengirim}\n`;
               response += `   Perihal: ${surat.perihal}\n\n`;
@@ -249,10 +508,11 @@ async function runAI(
           }
         }
         
-        if (lastResult.toolName === 'list_surat_keluar') {
-          if (Array.isArray(toolData) && toolData.length > 0) {
-            let response = `📤 Surat Keluar (${toolData.length})\n\n`;
-            toolData.slice(0, 5).forEach((surat: any, idx: number) => {
+        if (lastResult.toolName === 'cari_surat_keluar') {
+          const data = Array.isArray(toolData) ? toolData : toolData.data ?? [];
+          if (data.length > 0) {
+            let response = `📤 Surat Keluar (${data.length})\n\n`;
+            data.slice(0, 5).forEach((surat: any, idx: number) => {
               response += `${idx + 1}. ${surat.nomor_surat}\n`;
               response += `   Tujuan: ${surat.tujuan}\n`;
               response += `   Perihal: ${surat.perihal}\n`;
@@ -282,65 +542,58 @@ async function runAI(
     }
   };
 
-  // Coba Gemini dulu
-  try {
-    if (!googleKey) throw new Error("No Gemini key");
-    const text = await call(google("gemini-2.5-flash"), "Gemini");
-    if (text) return text;
-  } catch (e: any) {
-    const msg = e?.message || "";
-    console.error("[TG Bot] Gemini failed:", msg);
-    console.error("[TG Bot] Gemini error stack:", e?.stack);
+  const providers = [
+    {
+      name: "NVIDIA",
+      enabled: !!nvidiaKey,
+      note: "",
+      run: () => call(nvidia("meta/llama-3.1-70b-instruct"), "NVIDIA"),
+    },
+    {
+      name: "Gemini",
+      enabled: !!googleKey,
+      note: "\n\n_via Gemini_",
+      run: () => call(google("gemini-2.5-flash"), "Gemini"),
+    },
+    {
+      name: "DeepSeek",
+      enabled: !!deepseekKey,
+      note: "\n\n_via DeepSeek_",
+      run: () => call(deepseek("deepseek-chat"), "DeepSeek"),
+    },
+    {
+      name: "OpenRouter",
+      enabled: !!openrouterKey,
+      note: "\n\n_via OpenRouter_",
+      run: () => call(openrouter("meta-llama/llama-3.3-70b-instruct:free"), "OpenRouter"),
+    },
+  ];
 
-    // Fallback 1 → DeepSeek
-    if (isRecoverableError(msg) && deepseekKey) {
-      try {
-        const text = await call(deepseek("deepseek-chat"), "DeepSeek");
-        if (text) return text + "\n\n_⚡ via DeepSeek_";
-      } catch (e2: any) {
-        console.error("[TG Bot] DeepSeek failed:", e2?.message);
-        console.error("[TG Bot] DeepSeek error stack:", e2?.stack);
+  const errors: string[] = [];
 
-        // Fallback 2 → NVIDIA
-        if (nvidiaKey) {
-          try {
-            const text = await call(nvidia("meta/llama-3.1-70b-instruct"), "NVIDIA");
-            if (text) return text + "\n\n_⚡ via NVIDIA Llama_";
-          } catch (e3: any) {
-            console.error("[TG Bot] NVIDIA failed:", e3?.message);
-            console.error("[TG Bot] NVIDIA error stack:", e3?.stack);
+  for (const provider of providers) {
+    if (!provider.enabled) {
+      errors.push(`${provider.name}: API key belum dikonfigurasi`);
+      continue;
+    }
 
-            // Fallback 3 → OpenRouter
-            if (openrouterKey) {
-              try {
-                const text = await call(openrouter("openrouter/free"), "OpenRouter");
-                if (text) return text + "\n\n_⚡ via OpenRouter_";
-              } catch (e4: any) {
-                console.error("[TG Bot] OpenRouter failed:", e4?.message);
-                throw new Error(`Semua AI gagal: ${e4?.message}`);
-              }
-            } else {
-              throw new Error(`Gemini, DeepSeek & NVIDIA gagal, OpenRouter key tidak ada`);
-            }
-          }
-        } else if (openrouterKey) {
-          try {
-            const text = await call(openrouter("openrouter/free"), "OpenRouter");
-            if (text) return text + "\n\n_⚡ via OpenRouter_";
-          } catch (e3: any) {
-            console.error("[TG Bot] OpenRouter failed:", e3?.message);
-            throw new Error(`Semua AI gagal: ${e3?.message}`);
-          }
-        } else {
-          throw new Error(`Gemini & DeepSeek gagal, NVIDIA & OpenRouter key tidak ada`);
-        }
-      }
-    } else {
-      throw e;
+    try {
+      const text = await provider.run();
+      if (text) return `${text}${provider.note}`;
+    } catch (error: any) {
+      const message = error?.message || String(error);
+      errors.push(`${provider.name}: ${message}`);
+      console.error(`[TG Bot] ${provider.name} failed:`, message);
+      console.error(`[TG Bot] ${provider.name} error stack:`, error?.stack);
     }
   }
 
-  return "Maaf, saya tidak dapat memproses permintaan ini saat ini.";
+  console.warn("[TG Bot] All AI providers failed:", errors.join(" | "));
+  return [
+    "Maaf, provider AI cloud sedang tidak tersedia untuk chat bebas saat ini.",
+    "",
+    "Fitur data SIPAS tetap bisa dipakai. Coba: `Berapa surat masuk hari ini?`, `Cari surat masuk tentang rapat`, atau `Daftar approval`.",
+  ].join("\n");
 }
 
 export async function POST(req: Request) {
@@ -413,6 +666,19 @@ export async function POST(req: Request) {
     // ── Jalankan AI ───────────────────────────────────────────────────────────
     try {
       const tools = createSipasTools(sipasUser.id, sipasUser.role, supabase);
+      
+      // PRIORITAS 1: Coba jawab dengan local intent detection (CEPAT, TANPA AI)
+      console.log("[TG Bot] Checking local intent first...");
+      const localResponse = await tryLocalTelegramResponse(text, tools);
+      
+      if (localResponse) {
+        console.log("[TG Bot] Local response found, sending directly");
+        await sendMessage(chatId, localResponse);
+        return new Response("ok");
+      }
+      
+      // PRIORITAS 2: Jika tidak bisa dijawab lokal, gunakan AI model
+      console.log("[TG Bot] No local match, calling AI provider...");
       const systemPrompt = buildSystemPrompt(sipasUser) +
         `\n\n## Konteks Platform\nKamu sedang membalas pesan melalui Telegram Bot. PENTING: Setelah memanggil tool, kamu HARUS memberikan respons text yang menjelaskan hasil tool tersebut kepada user. Jangan hanya memanggil tool tanpa memberikan penjelasan. Gunakan format yang ringkas dan jelas. Jangan gunakan markdown heading (##). Kamu bisa gunakan emoji untuk membuat respons lebih menarik.`;
 

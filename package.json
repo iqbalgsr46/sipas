@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:nvidia": "node test-nvidia-api.js"
   },
   "dependencies": {
     "@ai-sdk/deepseek": "^2.0.38",
@@ -20,6 +21,7 @@
     "@supabase/supabase-js": "^2.104.1",
     "ai": "^6.0.206",
     "clsx": "^2.1.1",
+    "dotenv": "^16.6.1",
     "lucide-react": "^1.11.0",
     "motion": "^12.38.0",
     "next": "16.2.4",
